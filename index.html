@@ -56,8 +56,7 @@
         }
 
         .desktop {
-            width: 100vw;
-            height: 100vh;
+
             background: url('https://images.unsplash.com/photo-1503264116251-35a269479413') no-repeat center center fixed;
             background-size: cover;
             display: flex;
@@ -476,6 +475,16 @@
     </div>
 
     <script>
+
+        window.onresize = function () {
+            document.querySelector('.desktop').style.height = `${window.innerHeight}px`;
+            document.querySelector('.desktop').style.width = `${window.innerWidth}px`;
+        }
+        window.onload = function () {
+            document.querySelector('.desktop').style.height = `${window.innerHeight}px`;
+            document.querySelector('.desktop').style.width = `${window.innerWidth}px`;
+        }
+
         document.getElementById('startMenu').style.display = 'none';
         function toggleStartMenu() {
             const startMenu = document.getElementById('startMenu');
