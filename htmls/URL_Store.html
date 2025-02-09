@@ -267,39 +267,35 @@
     </div>
 
     <script>
-        let editUrlItem = null; // To store the URL item being edited
-
-        // Check if URLs exist in localStorage and load them
         window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
             loadUrls();
         };
 
-        // Function to add a URL
-        function addUrl() {
-            const urlInput = document.getElementById('urlInput');
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        };
+
+        function loadUrls() {
             const urlList = document.getElementById('urlList');
-            const errorMessage = document.getElementById('errorMessage');
+            urlList.innerHTML = ''; // Clear list before loading
 
-            const url = urlInput.value.trim();
+            const storedUrls = JSON.parse(localStorage.getItem('urls')) || [];
 
-            if (!url || !isValidUrl(url)) {
-                errorMessage.textContent = "Please enter a valid URL.";
-                return;
-            }
+            storedUrls.forEach(url => {
+                createUrlItem(url);
+            });
+        }
 
-            // Clear previous error messages
-            errorMessage.textContent = "";
-
-            // Create URL item element
+        function createUrlItem(url) {
+            const urlList = document.getElementById('urlList');
             const urlItem = document.createElement('li');
 
-            // Add URL text with a link
             const urlText = document.createElement('a');
             urlText.href = url;
             urlText.target = "_blank";
             urlText.textContent = url;
 
-            // Add Edit, Delete, and Copy buttons with icons
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '<i class="fas fa-edit"></i>';
             editBtn.classList.add('edit');
@@ -321,30 +317,36 @@
                 copyUrlToClipboard(url, copyBtn);
             };
 
-            // Append elements to the list item
             urlItem.appendChild(urlText);
             urlItem.appendChild(editBtn);
             urlItem.appendChild(deleteBtn);
             urlItem.appendChild(copyBtn);
 
-            // Append the new item to the list
             urlList.appendChild(urlItem);
+        }
 
-            // Save the updated URLs to localStorage
+        function addUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const url = urlInput.value.trim();
+
+            if (!url || !isValidUrl(url)) {
+                errorMessage.textContent = "Please enter a valid URL.";
+                return;
+            }
+
+            errorMessage.textContent = "";
+            createUrlItem(url);
             saveUrls();
-
-            // Clear the input field
             urlInput.value = '';
         }
 
-        // Function to edit a URL (open modal)
         function editUrl(urlItem, oldUrl) {
-            editUrlItem = urlItem; // Store the URL item being edited
+            editUrlItem = urlItem;
             document.getElementById('editInput').value = oldUrl;
             document.getElementById('editModal').style.display = "block";
         }
 
-        // Function to save the edited URL
         function saveEditedUrl() {
             const newUrl = document.getElementById('editInput').value.trim();
 
@@ -357,62 +359,15 @@
             urlText.href = newUrl;
             urlText.textContent = newUrl;
 
-            // Save updated URLs to localStorage
             saveUrls();
-
             closeModal();
         }
 
-        // Function to delete a URL
         function deleteUrl(urlItem) {
             urlItem.remove();
             saveUrls();
         }
 
-        // Function to load URLs from localStorage
-        function loadUrls() {
-            const urlList = document.getElementById('urlList');
-            const storedUrls = JSON.parse(localStorage.getItem('urls')) || [];
-
-            storedUrls.forEach(url => {
-                const urlItem = document.createElement('li');
-
-                const urlText = document.createElement('a');
-                urlText.href = url;
-                urlText.target = "_blank";
-                urlText.textContent = url;
-
-                const editBtn = document.createElement('button');
-                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-                editBtn.classList.add('edit');
-                editBtn.onclick = function () {
-                    editUrl(urlItem, url);
-                };
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                deleteBtn.classList.add('delete');
-                deleteBtn.onclick = function () {
-                    deleteUrl(urlItem);
-                };
-
-                const copyBtn = document.createElement('button');
-                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-                copyBtn.classList.add('copy');
-                copyBtn.onclick = function () {
-                    copyUrlToClipboard(url, copyBtn);
-                };
-
-                urlItem.appendChild(urlText);
-                urlItem.appendChild(editBtn);
-                urlItem.appendChild(deleteBtn);
-                urlItem.appendChild(copyBtn);
-
-                urlList.appendChild(urlItem);
-            });
-        }
-
-        // Function to save URLs to localStorage
         function saveUrls() {
             const urlListItems = document.querySelectorAll('#urlList li');
             const urls = [];
@@ -425,38 +380,6 @@
             localStorage.setItem('urls', JSON.stringify(urls));
         }
 
-        // Function to validate URL format
-        function isValidUrl(url) {
-            const pattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
-            return pattern.test(url);
-        }
-
-        // Function to close the modal
-        function closeModal() {
-            document.getElementById('editModal').style.display = "none";
-        }
-
-        // Function to copy the URL to clipboard
-        function copyUrlToClipboard(url, button) {
-            navigator.clipboard.writeText(url).then(() => {
-                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                button.classList.add('copied');
-
-                // Reset the button text after 2 seconds
-                setTimeout(() => {
-                    button.innerHTML = '<i class="fas fa-copy"></i> Copy';
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                alert("Failed to copy URL: " + err);
-            });
-        }
-        window.onresize = function () {
-            document.querySelector('body').style.height = `${window.innerHeight}px`;
-        }
-        window.onload = function () {
-            document.querySelector('body').style.height = `${window.innerHeight}px`;
-        }
     </script>
 </body>
 
