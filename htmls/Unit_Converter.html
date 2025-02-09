@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 320px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border 0.3s ease-in-out;
+        }
+
+        input.invalid,
+        select.invalid {
+            border: 1px solid red;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        h2 {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .reset-button {
+            background-color: #f44336;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .reset-button:hover {
+            background-color: #e53935;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <label for="fromValue">Value:</label>
+        <input type="number" id="fromValue" placeholder="Enter value" />
+
+        <label for="category">Category:</label>
+        <select id="category" onchange="populateUnits()">
+            <option value="length">Length</option>
+            <option value="weight">Weight</option>
+            <option value="temperature">Temperature</option>
+            <option value="volume">Volume</option>
+            <option value="time">Time</option>
+            <option value="speed">Speed</option>
+        </select>
+
+        <label for="fromUnit">From:</label>
+        <select id="fromUnit"></select>
+
+        <label for="toUnit">To:</label>
+        <select id="toUnit"></select>
+
+        <button onclick="convert()">Convert</button>
+
+        <button class="reset-button" onclick="resetConverter()">Reset</button>
+
+        <h2>Converted Value: <span id="result"></span></h2>
+        <h3 class="error" id="error"></h3>
+
+
+    </div>
+
+    <script>
+
+
+
+        const unitCategories = {
+            length: {
+                units: ['km', 'm', 'cm', 'mm', 'mi', 'in'],
+                conversion: {
+                    km: {
+                        m: 1000,
+                        cm: 100000,
+                        mm: 1000000,
+                        mi: 0.621371,
+                        in: 39370.1
+                    },
+                    m: {
+                        km: 0.001,
+                        cm: 100,
+                        mm: 1000,
+                        mi: 0.000621371,
+                        in: 39.3701
+                    },
+                    cm: {
+                        km: 0.00001,
+                        m: 0.01,
+                        mm: 10,
+                        mi: 0.0000062137,
+                        in: 0.393701
+                    },
+                    mm: {
+                        km: 0.000001,
+                        m: 0.001,
+                        cm: 0.1,
+                        mi: 0.000000621371,
+                        in: 0.0393701
+                    },
+                    mi: {
+                        km: 1.60934,
+                        m: 1609.34,
+                        cm: 160934,
+                        mm: 1609340,
+                        in: 63360
+                    },
+                    in: {
+                        km: 0.0000254,
+                        m: 0.0254,
+                        cm: 2.54,
+                        mm: 25.4,
+                        mi: 0.0000157828
+                    }
+                }
+            },
+            weight: {
+                units: ['kg', 'g', 'lb', 'oz', 'st'],
+                conversion: {
+                    kg: {
+                        g: 1000,
+                        lb: 2.20462,
+                        oz: 35.274,
+                        st: 0.157473
+                    },
+                    g: {
+                        kg: 0.001,
+                        lb: 0.00220462,
+                        oz: 0.035274,
+                        st: 0.000157473
+                    },
+                    lb: {
+                        kg: 0.453592,
+                        g: 453.592,
+                        oz: 16,
+                        st: 0.0714286
+                    },
+                    oz: {
+                        kg: 0.0283495,
+                        g: 28.3495,
+                        lb: 0.0625,
+                        st: 0.0044643
+                    },
+                    st: {
+                        kg: 6.35029,
+                        g: 6350.29,
+                        lb: 14,
+                        oz: 224
+                    }
+                }
+            },
+            temperature: {
+                units: ['C', 'F', 'K', 'R'],
+                conversion: {
+                    C: {
+                        F: (value) => (value * 9 / 5) + 32,
+                        K: (value) => value + 273.15,
+                        R: (value) => (value + 273.15) * 9 / 5
+                    },
+                    F: {
+                        C: (value) => (value - 32) * 5 / 9,
+                        K: (value) => (value - 32) * 5 / 9 + 273.15,
+                        R: (value) => value + 459.67
+                    },
+                    K: {
+                        C: (value) => value - 273.15,
+                        F: (value) => (value - 273.15) * 9 / 5 + 32,
+                        R: (value) => value * 9 / 5
+                    },
+                    R: {
+                        C: (value) => (value - 491.67) * 5 / 9,
+                        F: (value) => value - 459.67,
+                        K: (value) => value * 5 / 9
+                    }
+                }
+            },
+            volume: {
+                units: ['l', 'ml', 'gal', 'm3', 'fl oz'],
+                conversion: {
+                    l: {
+                        ml: 1000,
+                        gal: 0.264172,
+                        m3: 0.001,
+                        fl: 33.814
+                    },
+                    ml: {
+                        l: 0.001,
+                        gal: 0.000264172,
+                        m3: 0.000001,
+                        fl: 0.033814
+                    },
+                    gal: {
+                        l: 3.78541,
+                        ml: 3785.41,
+                        m3: 0.00378541,
+                        fl: 128
+                    },
+                    m3: {
+                        l: 1000,
+                        ml: 1000000,
+                        gal: 264.172,
+                        fl: 33814
+                    },
+                    fl: {
+                        l: 0.0295735,
+                        ml: 29.5735,
+                        gal: 0.0078125,
+                        m3: 0.0000295735
+                    }
+                }
+            },
+            time: {
+                units: ['s', 'min', 'h', 'd', 'wk', 'mo', 'y'],
+                conversion: {
+                    s: {
+                        min: 1 / 60,
+                        h: 1 / 3600,
+                        d: 1 / 86400,
+                        wk: 1 / 604800,
+                        mo: 1 / 2628000,
+                        y: 1 / 31536000
+                    },
+                    min: {
+                        s: 60,
+                        h: 1 / 60,
+                        d: 1 / 1440,
+                        wk: 1 / 10080,
+                        mo: 1 / 43800,
+                        y: 1 / 525600
+                    },
+                    h: {
+                        s: 3600,
+                        min: 60,
+                        d: 1 / 24,
+                        wk: 1 / 168,
+                        mo: 1 / 730,
+                        y: 1 / 8760
+                    },
+                    d: {
+                        s: 86400,
+                        min: 1440,
+                        h: 24,
+                        wk: 1 / 7,
+                        mo: 1 / 30,
+                        y: 1 / 365
+                    },
+                    wk: {
+                        s: 604800,
+                        min: 10080,
+                        h: 168,
+                        d: 7,
+                        mo: 1 / 4.34524,
+                        y: 1 / 52.1429
+                    },
+                    mo: {
+                        s: 2628000,
+                        min: 43800,
+                        h: 730,
+                        d: 30,
+                        wk: 4.34524,
+                        y: 1 / 12
+                    },
+                    y: {
+                        s: 31536000,
+                        min: 525600,
+                        h: 8760,
+                        d: 365,
+                        wk: 52.1429,
+                        mo: 12
+                    }
+                }
+            },
+            speed: {
+                units: ['m/s', 'km/h', 'mi/h', 'ft/s'],
+                conversion: {
+                    'm/s': {
+                        'km/h': 3.6,
+                        'mi/h': 2.23694,
+                        'ft/s': 3.28084
+                    },
+                    'km/h': {
+                        'm/s': 0.277778,
+                        'mi/h': 0.621371,
+                        'ft/s': 0.911344
+                    },
+                    'mi/h': {
+                        'm/s': 0.44704,
+                        'km/h': 1.60934,
+                        'ft/s': 1.46667
+                    },
+                    'ft/s': {
+                        'm/s': 0.3048,
+                        'km/h': 1.09728,
+                        'mi/h': 0.681818
+                    }
+                }
+            }
+        };
+
+        let history = [];
+
+        function populateUnits() {
+            let category = document.getElementById("category").value;
+            let fromUnitSelect = document.getElementById("fromUnit");
+            let toUnitSelect = document.getElementById("toUnit");
+
+            // Clear existing options
+            fromUnitSelect.innerHTML = "";
+            toUnitSelect.innerHTML = "";
+
+            // Get units for selected category
+            let units = unitCategories[category].units;
+
+            // Add options for 'From' and 'To' selects
+            units.forEach(unit => {
+                let optionFrom = document.createElement("option");
+                optionFrom.value = unit;
+                optionFrom.textContent = unit;
+                fromUnitSelect.appendChild(optionFrom);
+
+                let optionTo = document.createElement("option");
+                optionTo.value = unit;
+                optionTo.textContent = unit;
+                toUnitSelect.appendChild(optionTo);
+            });
+        }
+
+        function convert() {
+            let value = parseFloat(document.getElementById("fromValue").value);
+            let category = document.getElementById("category").value;
+            let fromUnit = document.getElementById("fromUnit").value;
+            let toUnit = document.getElementById("toUnit").value;
+            let errorElement = document.getElementById("error");
+            let historyList = document.getElementById("historyList");
+
+            // Validate the input
+            if (isNaN(value)) {
+                errorElement.innerText = "Please enter a valid value.";
+                return;
+            } else {
+                errorElement.innerText = "";
+            }
+
+            let result = 0;
+
+            // Conversion logic based on category
+            if (category === "temperature") {
+                result = unitCategories[category].conversion[fromUnit][toUnit](value);
+            } else {
+                result = value * unitCategories[category].conversion[fromUnit][toUnit];
+            }
+
+            // Display the result
+            document.getElementById("result").innerText = result.toFixed(4);
+
+            // Save the conversion in history
+            history.push(`${value} ${fromUnit} = ${result.toFixed(4)} ${toUnit}`);
+            updateHistory();
+        }
+
+
+        function resetConverter() {
+            document.getElementById("fromValue").value = "";
+            document.getElementById("fromUnit").selectedIndex = 0;
+            document.getElementById("toUnit").selectedIndex = 0;
+            document.getElementById("result").innerText = "";
+            document.getElementById("error").innerText = "";
+        }
+
+        // Initialize the units on page load
+        window.onload = function () {
+            populateUnits();
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        };
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+
+    </script>
+</body>
+
+</html>

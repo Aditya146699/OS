@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        form {
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background-color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .input {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            margin-bottom: 1.5rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s ease;
+        }
+
+        .input::placeholder {
+            color: #bbb;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #7f56d9;
+        }
+
+        .todos {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 2rem;
+        }
+
+        .todos li {
+            background-color: #fff;
+            font-size: 18px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .todos li:hover {
+            background-color: #f0f4f8;
+            transform: translateX(5px);
+        }
+
+        .todos li.completed {
+            color: #bbb;
+            text-decoration: line-through;
+        }
+
+        .todos li .delete {
+            font-size: 1.2rem;
+            color: #f44336;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .todos li .delete:hover {
+            color: #e53935;
+        }
+
+        .btn {
+            background-color: #7f56d9;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #6a47c7;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            form {
+                width: 90%;
+                padding: 1rem;
+            }
+
+            .todos li {
+                font-size: 1.2rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+    <title>Todo List</title>
+</head>
+
+<body>
+    <form id="form">
+        <input type="text" class="input" id="input" placeholder="Enter your todo" autocomplete="off" />
+        <button class="btn" type="submit">Add</button>
+        <ul class="todos" id="todos"></ul>
+    </form>
+
+    <script>
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const todosUL = document.getElementById('todos');
+        const clearCompletedBtn = document.getElementById('clear-completed');
+
+        const todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        if (todos) {
+            todos.forEach(todo => addTodo(todo));
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addTodo();
+        });
+
+        function addTodo(todo) {
+            let todoText = input.value;
+
+            if (todo) {
+                todoText = todo.text;
+            }
+
+            if (todoText) {
+                const todoEl = document.createElement('li');
+                if (todo && todo.completed) {
+                    todoEl.classList.add('completed');
+                }
+
+                todoEl.innerHTML = `
+                    ${todoText}
+                    <span class="delete">❌</span>
+                `;
+
+                todoEl.addEventListener('click', () => {
+                    todoEl.classList.toggle('completed');
+                    updateLS();
+                });
+
+                todoEl.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    todoEl.remove();
+                    updateLS();
+                });
+
+                const deleteBtn = todoEl.querySelector('.delete');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    todoEl.remove();
+                    updateLS();
+                });
+
+                todosUL.appendChild(todoEl);
+                input.value = '';
+                updateLS();
+            }
+        }
+
+        function updateLS() {
+            const todosEl = document.querySelectorAll('li');
+            const todos = [];
+
+            todosEl.forEach(todoEl => {
+                todos.push({
+                    text: todoEl.innerText.replace('❌', ''),
+                    completed: todoEl.classList.contains('completed')
+                });
+            });
+
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+    </script>
+</body>
+
+</html>

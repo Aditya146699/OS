@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+
+        .calendar {
+            width: 350px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .buttons button {
+            padding: 5px 10px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            background-color: #0078d7;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .buttons button:hover {
+            background-color: #005bb5;
+        }
+
+        .days-of-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .days div {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .days div:hover {
+            background-color: #0078d7;
+            color: white;
+        }
+
+        .today {
+            background-color: #f2a900;
+            color: white;
+            font-weight: bold;
+        }
+
+        .holiday {
+            background-color: #ff3b30;
+            color: white;
+            font-weight: bold;
+        }
+
+        .holiday:hover {
+            background-color: #cc2f22;
+        }
+
+        .event {
+            background-color: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .event:hover {
+            background-color: #388e3c;
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            display: none;
+            z-index: 1001; /* Ensure tooltip is above modal overlay */
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .modal button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: #0078d7;
+            color: white;
+            border-radius: 5px;
+            margin-right: 10px; /* Add some spacing between buttons */
+        }
+
+        .modal button:hover {
+            background-color: #005bb5;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calendar">
+        <div class="header">
+            <button id="prevMonth">Prev</button>
+            <h2 id="monthYear"></h2>
+            <button id="nextMonth">Next</button>
+        </div>
+        <div class="days-of-week">
+            <div>Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+        </div>
+        <div class="days" id="days"></div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="eventModal">
+        <h3>Add/Edit Event</h3>
+        <input type="text" id="eventTitle" placeholder="Event Title">
+        <button id="saveEvent">Save</button>
+        <button id="deleteEvent">Delete</button>
+        <button id="cancelEvent">Cancel</button>
+    </div>
+     <script>
+          window.onresize = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        window.onload = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        const holidays = {
+            "1-1": "New Year's Day",
+            "12-25": "Christmas Day",
+            "7-4": "Independence Day",
+            "10-31": "Halloween",
+        };
+
+        let currentDate = new Date();
+        let events = JSON.parse(localStorage.getItem('events')) || {};
+
+        function renderCalendar() {
+            const monthYear = document.getElementById('monthYear');
+            const daysContainer = document.getElementById('days');
+            const prevMonthButton = document.getElementById('prevMonth');
+            const nextMonthButton = document.getElementById('nextMonth');
+            const tooltip = document.getElementById('tooltip');
+
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            monthYear.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startDay = firstDay.getDay();
+
+            daysContainer.innerHTML = '';
+
+            for (let i = 0; i < startDay; i++) {
+                const blankCell = document.createElement('div');
+                daysContainer.appendChild(blankCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.innerText = day;
+                const dateKey = `${currentMonth + 1}-${day}`;
+
+                if (holidays[dateKey]) {
+                    dayCell.classList.add('holiday');
+                    dayCell.dataset.tooltip = holidays[dateKey];
+                }
+
+                const today = new Date();
+                if (today.getDate() === day && today.getMonth() === currentMonth && today.getFullYear() === currentYear) {
+                    dayCell.classList.add('today');
+                }
+
+                dayCell.addEventListener('mouseenter', () => {
+                    if (dayCell.dataset.tooltip) {
+                        tooltip.style.display = 'block';
+                        tooltip.innerText = dayCell.dataset.tooltip;
+                        tooltip.style.top = `${dayCell.getBoundingClientRect().top - tooltip.offsetHeight - 5}px`;
+                        tooltip.style.left = `${dayCell.getBoundingClientRect().left + (dayCell.offsetWidth / 2) - (tooltip.offsetWidth / 2)}px`;
+                    }
+                });
+
+                dayCell.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+
+                dayCell.addEventListener('click', () => {
+                    openEventModal(day);
+                });
+
+                const eventKey = `${currentYear}-${currentMonth + 1}-${day}`;
+                if (events[eventKey]) {
+                    dayCell.classList.add('event');
+                    dayCell.dataset.tooltip = events[eventKey];
+                }
+
+                daysContainer.appendChild(dayCell);
+            }
+
+            prevMonthButton.onclick = () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            };
+
+            nextMonthButton.onclick = () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            };
+        }
+
+        function openEventModal(day) {
+            const modal = document.getElementById('eventModal');
+            const overlay = document.getElementById('overlay');
+            const saveEventButton = document.getElementById('saveEvent');
+            const deleteEventButton = document.getElementById('deleteEvent');
+            const cancelEventButton = document.getElementById('cancelEvent');
+            const eventTitleInput = document.getElementById('eventTitle');
+
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const eventKey = `${currentYear}-${currentMonth + 1}-${day}`;
+
+            eventTitleInput.value = events[eventKey] || '';
+
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+
+            saveEventButton.onclick = () => {
+                events[eventKey] = eventTitleInput.value;
+                localStorage.setItem('events', JSON.stringify(events));
+                renderCalendar();
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            };
+
+            deleteEventButton.onclick = () => {
+                delete events[eventKey];
+                localStorage.setItem('events', JSON.stringify(events));
+                renderCalendar();
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            };
+
+            cancelEventButton.onclick = () => {
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            };
+        }
+
+        renderCalendar();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Scanner</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap");
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Open Sans", sans-serif;
+        }
+
+        :root {
+            --white-color: #fff;
+            --black-color: #333;
+            --light-white-color: #f5f5f5;
+            --light-gray-color: #eaeaea;
+            --border-color: #ddd;
+            --primary-color: #4A90E2;
+            --secondary-color: #777;
+            --overlay-dark-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .dark-mode {
+            --white-color: #1f1f1f;
+            --black-color: #dcdcdc;
+            --light-white-color: #333;
+            --light-gray-color: #444;
+            --border-color: #777;
+            --secondary-color: #dcdcdc;
+            color: var(--white-color);
+        }
+
+        body {
+            background: var(--white-color);
+            color: var(--black-color);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--white-color);
+            border-bottom: 2px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-button,
+        .theme-button,
+        .settings-button {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--black-color);
+            transition: transform 0.2s ease;
+        }
+
+        .menu-button:hover,
+        .theme-button:hover,
+        .settings-button:hover {
+            transform: scale(1.2);
+        }
+
+        .logo-text {
+            color: var(--black-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .video-card {
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--light-white-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .thumbnail-container {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: var(--light-gray-color);
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 1rem;
+            background: var(--white-color);
+        }
+
+        .title {
+            color: var(--black-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .size,
+        .duration {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+
+        .vidcoll {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay-dark-color);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container {
+            position: relative;
+            width: 80%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            aspect-ratio: 16/9;
+        }
+
+        .video-id {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .vidclose {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.3s ease;
+        }
+
+        .vidclose:hover {
+            color: #ff5252;
+        }
+
+        .folder-input {
+            display: none;
+        }
+
+        .scan-button {
+            padding: 0.7rem 1.4rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin: 0 1rem;
+        }
+
+        .scan-button:hover {
+            background-color: #3578e5;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-top: 1rem;
+        }
+
+        .settings-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .settings-content {
+            background: var(--white-color);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            color: var(--black-color);
+            width: 350px;
+            text-align: center;
+        }
+
+        .settings-content label {
+            display: block;
+            margin: 1rem 0;
+        }
+
+        .settings-close {
+            cursor: pointer;
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="navbar">
+            <div class="nav-left">
+                <button class="menu-button">≡</button>
+                <h2 class="logo-text">VideoScanner</h2>
+                <input type="file" webkitdirectory directory multiple class="folder-input" id="folderInput">
+                <button class="scan-button" onclick="document.getElementById('folderInput').click()">Scan
+                    Folder</button>
+            </div>
+            <div>
+                <button class="theme-button">🌙</button>
+                <button class="settings-button" onclick="toggleSettings()">⚙️</button>
+            </div>
+        </header>
+
+        <div class="loading" id="loading">Loading videos...</div>
+
+        <main class="video-list" id="videoList">
+            <!-- Videos will be populated here -->
+        </main>
+
+        <div class="vidcoll">
+            <div class="video-container">
+                <video class="video-id" controls>Your browser doesn't support video playback.</video>
+            </div>
+            <button class="vidclose" onclick="closeVideo()">×</button>
+        </div>
+
+        <div class="settings-menu" id="settingsMenu">
+            <div class="settings-content">
+                <span class="settings-close" onclick="toggleSettings()">×</span>
+                <h3>Settings</h3>
+                <label>
+                    <input type="checkbox" id="invert" onchange="updateFilters()"> Invert Colors
+                </label>
+                <label>
+                    <input type="checkbox" id="grayscale" onchange="updateFilters()"> Grayscale
+                </label>
+                <label>
+                    Brightness:
+                    <input type="range" id="brightness" min="0" max="200" value="100" onchange="updateFilters()"> %
+                </label>
+                <label>
+                    Contrast:
+                    <input type="range" id="contrast" min="0" max="200" value="100" onchange="updateFilters()"> %
+                </label>
+                <label>
+                    Volume:
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="1" onchange="updateVolume()">
+                </label>
+                <label>
+                    Loop Playback:
+                    <input type="checkbox" id="loop" onchange="toggleLoop()">
+                </label>
+                <label>
+                    Playback Speed:
+                    <select id="speed" onchange="changePlaybackSpeed()">
+                        <option value="0.5">0.5x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Store video data
+        let videos = [];
+        const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.mkv'];
+
+        // DOM elements
+        const folderInput = document.getElementById('folderInput');
+        const videoList = document.getElementById('videoList');
+        const videoPlayer = document.querySelector('.video-id');
+        const videoCollection = document.querySelector('.vidcoll');
+        const themeButton = document.querySelector('.theme-button');
+        const loadingIndicator = document.getElementById('loading');
+        const settingsMenu = document.getElementById('settingsMenu');
+
+        // Theme handling
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            themeButton.innerText = '🔆';
+        }
+
+        themeButton.addEventListener('click', () => {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+            themeButton.innerText = isDarkMode ? '🔆' : '🌙';
+        });
+
+        // Handle folder selection
+        folderInput.addEventListener('change', async (e) => {
+            videos = [];
+            const files = Array.from(e.target.files);
+            loadingIndicator.style.display = 'block';
+            videoList.innerHTML = ''; // Clear previous video list
+
+            // Filter video files
+            const videoFiles = files.filter(file =>
+                videoExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+            );
+
+            if (videoFiles.length === 0) {
+                loadingIndicator.style.display = 'none';
+                alert('No valid video files found.');
+                return;
+            }
+
+            // Process each video file
+            await Promise.all(videoFiles.map(async (file) => {
+                const videoURL = URL.createObjectURL(file);
+                const duration = await getVideoDuration(videoURL);
+                const thumbnailURL = await getVideoThumbnail(videoURL);
+
+                videos.push({
+                    name: file.name,
+                    path: videoURL,
+                    size: formatFileSize(file.size),
+                    duration: formatDuration(duration),
+                    thumbnail: thumbnailURL
+                });
+            }));
+
+            displayVideos();
+            loadingIndicator.style.display = 'none';
+        });
+
+        // Get video duration
+        function getVideoDuration(url) {
+            return new Promise(resolve => {
+                const video = document.createElement('video');
+                video.src = url;
+                video.addEventListener('loadedmetadata', () => {
+                    resolve(video.duration);
+                });
+            });
+        }
+
+        // Get video thumbnail
+        function getVideoThumbnail(url) {
+            return new Promise(resolve => {
+                const video = document.createElement('video');
+                video.src = url;
+                video.currentTime = 2; // Grab a frame at 2 seconds
+                video.addEventListener('loadeddata', () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400;
+                    canvas.height = 225;
+                    const context = canvas.getContext('2d');
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg'));
+                });
+            });
+        }
+
+        // Display videos in grid
+        function displayVideos() {
+            videoList.innerHTML = videos.map((video, index) => `
+                <div class="video-card" onclick="playVideo(${index})">
+                    <div class="thumbnail-container">
+                        <img src="${video.thumbnail}" alt="Video thumbnail" class="thumbnail">
+                    </div>
+                    <div class="video-info">
+                        <h3 class="title">${video.name}</h3>
+                        <p class="size">${video.size}</p>
+                        <p class="duration">${video.duration}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Video playback functions
+        function playVideo(index) {
+            const video = videos[index];
+            videoPlayer.src = video.path;
+            videoCollection.style.display = 'flex';
+            videoPlayer.play();
+            updateFilters(); // Apply filters on play
+            updateVolume();  // Set initial volume
+        }
+
+        function closeVideo() {
+            videoCollection.style.display = 'none';
+            videoPlayer.pause();
+            videoPlayer.src = '';
+        }
+
+        // Change playback speed
+        function changePlaybackSpeed() {
+            const speedSelect = document.getElementById('speed');
+            videoPlayer.playbackRate = parseFloat(speedSelect.value);
+        }
+
+        // Update filters
+        function updateFilters() {
+            const invert = document.getElementById('invert').checked ? 'invert(1)' : 'invert(0)';
+            const grayscale = document.getElementById('grayscale').checked ? 'grayscale(1)' : 'grayscale(0)';
+            const brightness = document.getElementById('brightness').value;
+            const contrast = document.getElementById('contrast').value;
+            videoPlayer.style.filter = `${invert} ${grayscale} brightness(${brightness}%) contrast(${contrast}%)`;
+        }
+
+        // Update volume
+        function updateVolume() {
+            const volumeInput = document.getElementById('volume');
+            videoPlayer.volume = volumeInput.value;
+        }
+
+        // Toggle loop
+        function toggleLoop() {
+            videoPlayer.loop = document.getElementById('loop').checked;
+        }
+
+        // Toggle settings menu
+        function toggleSettings() {
+            settingsMenu.style.display = settingsMenu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Utility function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Utility function to format duration
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+    </script>
+</body>
+
+</html>

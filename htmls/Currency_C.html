@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        .converter-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .converter div {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="converter-container">
+        <h1>Currency Converter</h1>
+
+        <div class="converter">
+            <div>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" placeholder="Enter amount">
+            </div>
+
+            <div>
+                <label for="fromCurrency">From Currency:</label>
+                <select id="fromCurrency">
+                    <!-- Currency options will be populated by JavaScript -->
+                </select>
+            </div>
+
+            <div>
+                <label for="toCurrency">To Currency:</label>
+                <select id="toCurrency">
+                    <!-- Currency options will be populated by JavaScript -->
+                </select>
+            </div>
+
+            <button id="convertBtn">Convert</button>
+
+            <div>
+                <h2 id="result"></h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+
+        // API endpoint for exchange rates (get your own API key)
+        const apiKey = 'd8053898c01192903a39181d'; // Replace with your API key from https://www.exchangerate-api.com/
+        const apiUrl = `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`;
+
+        // Map currency codes to currency names
+        const currencyNames = {
+            'USD': 'US Dollar',
+            'INR': 'Indian Rupee',
+            'EUR': 'Euro',
+            'GBP': 'British Pound',
+            'AUD': 'Australian Dollar',
+            'CAD': 'Canadian Dollar',
+            'JPY': 'Japanese Yen',
+            'CNY': 'Chinese Yuan',
+            'CHF': 'Swiss Franc',
+            'SEK': 'Swedish Krona',
+            'NZD': 'New Zealand Dollar',
+            'SGD': 'Singapore Dollar',
+            'MXN': 'Mexican Peso',
+            'BRL': 'Brazilian Real',
+            'ZAR': 'South African Rand',
+            'HKD': 'Hong Kong Dollar',
+            'KRW': 'South Korean Won',
+            'RUB': 'Russian Ruble',
+            'TRY': 'Turkish Lira',
+            'AED': 'United Arab Emirates Dirham',
+            'SAR': 'Saudi Riyal',
+            'MYR': 'Malaysian Ringgit',
+            'THB': 'Thai Baht',
+            'PHP': 'Philippine Peso',
+            'VND': 'Vietnamese Dong',
+            'IDR': 'Indonesian Rupiah',
+            'PKR': 'Pakistani Rupee',
+            'DKK': 'Danish Krone',
+            'NOK': 'Norwegian Krone',
+            'SEK': 'Swedish Krona',
+            'PLN': 'Polish Zloty',
+            'HUF': 'Hungarian Forint',
+            'CZK': 'Czech Koruna',
+            'ISK': 'Icelandic Króna',
+            'ILS': 'Israeli New Shekel',
+            'KWD': 'Kuwaiti Dinar',
+            'BHD': 'Bahraini Dinar',
+            'OMR': 'Omani Rial',
+            'QAR': 'Qatari Rial',
+            'JOD': 'Jordanian Dinar',
+            'LBP': 'Lebanese Pound',
+            'EGP': 'Egyptian Pound',
+            'MAD': 'Moroccan Dirham',
+            'TND': 'Tunisian Dinar',
+            'KGS': 'Kyrgyzstani Som',
+            'UZS': 'Uzbekistani Som',
+            'AFN': 'Afghan Afghani',
+            'LKR': 'Sri Lankan Rupee',
+            'BDT': 'Bangladeshi Taka',
+            'MNT': 'Mongolian Tugrik',
+            'MMK': 'Myanmar Kyat',
+            'KHR': 'Cambodian Riel',
+            'LAK': 'Laotian Kip',
+            'NGN': 'Nigerian Naira',
+            'GHS': 'Ghanaian Cedi',
+            'KES': 'Kenyan Shilling',
+            'TZS': 'Tanzanian Shilling',
+            'UGX': 'Ugandan Shilling',
+            'RWF': 'Rwandan Franc',
+            'BND': 'Brunei Dollar',
+            'FJD': 'Fijian Dollar',
+            'TWD': 'New Taiwan Dollar',
+            'MXN': 'Mexican Peso',
+            'COP': 'Colombian Peso',
+            'ARS': 'Argentine Peso',
+            'CLP': 'Chilean Peso',
+            'PEN': 'Peruvian Nuevo Sol',
+            'PYG': 'Paraguayan Guarani',
+            'SYP': 'Syrian Pound',
+            'YER': 'Yemeni Rial',
+            'SOS': 'Somali Shilling',
+            'AFN': 'Afghan Afghani',
+            'MVR': 'Maldivian Rufiyaa'
+        };
+
+        // Fetch the list of currencies
+        async function fetchCurrencyList() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.result === "success") {
+                    const currencyList = Object.keys(data.conversion_rates);
+                    populateCurrencyDropdowns(currencyList);
+                }
+            } catch (error) {
+                console.error('Error fetching currency data:', error);
+            }
+        }
+
+        // Populate currency dropdown lists with options
+        function populateCurrencyDropdowns(currencyList) {
+            const fromCurrencyDropdown = document.getElementById('fromCurrency');
+            const toCurrencyDropdown = document.getElementById('toCurrency');
+
+            currencyList.forEach(currency => {
+                const option1 = document.createElement('option');
+                option1.value = currency;
+                option1.textContent = `${currency} - ${currencyNames[currency] || currency}`;
+                fromCurrencyDropdown.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = currency;
+                option2.textContent = `${currency} - ${currencyNames[currency] || currency}`;
+                toCurrencyDropdown.appendChild(option2);
+            });
+        }
+
+        // Convert currency
+        async function convertCurrency() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+
+            if (isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.result === "success") {
+                    const fromRate = data.conversion_rates[fromCurrency];
+                    const toRate = data.conversion_rates[toCurrency];
+                    const convertedAmount = (amount * toRate) / fromRate;
+
+                    document.getElementById('result').textContent = `${amount} ${currencyNames[fromCurrency] || fromCurrency} = ${convertedAmount.toFixed(2)} ${currencyNames[toCurrency] || toCurrency}`;
+                }
+            } catch (error) {
+                console.error('Error converting currency:', error);
+            }
+        }
+
+        // Event listener for the convert button
+        document.getElementById('convertBtn').addEventListener('click', convertCurrency);
+
+        // Initialize the currency converter
+        fetchCurrencyList();
+
+    </script>
+</body>
+
+</html>

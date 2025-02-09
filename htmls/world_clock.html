@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        #city-select {
+            margin-top: 20px;
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .clock-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 5px;
+            text-align: center;
+            width: 200px; /* Fixed width for consistent layout */
+            height: 150px; /* Fixed height for consistent layout */
+            display: flex; /* Use flexbox for vertical centering */
+            flex-direction: column;
+            justify-content: center; /* Vertically center content */
+        }
+
+        .clock-title {
+            font-size: 1.2em;
+            margin-bottom: 5px; /* Reduced margin */
+        }
+
+        .clock-time {
+            font-size: 1.8em; /* Slightly smaller time font */
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments (optional) */
+        @media (max-width: 768px) {
+            .clock-container {
+                width: 180px;
+                height: 130px;
+                font-size: smaller;
+            }
+            .clock-time {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <select id="city-select">
+        <option value="" >Select a City</option>
+    </select>
+
+    <script>
+             window.onresize = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        window.onload = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        const timeZones = {
+            "London": "Europe/London",
+            "New York": "America/New_York",
+            "Tokyo": "Asia/Tokyo",
+            "Mumbai": "Asia/Kolkata",
+            "Sydney": "Australia/Sydney",
+            "Dubai": "Asia/Dubai",
+            "Paris": "Europe/Paris",
+            "Los Angeles": "America/Los_Angeles",
+            "Beijing": "Asia/Shanghai",
+            "Toronto": "America/Toronto",
+            "Sao Paulo": "America/Sao_Paulo",
+            "Johannesburg": "Africa/Johannesburg",
+            "Moscow": "Europe/Moscow",
+            "Hong Kong": "Asia/Hong_Kong",
+            "Singapore": "Asia/Singapore",
+            "Berlin": "Europe/Berlin",
+            "Rome": "Europe/Rome",
+            "Madrid": "Europe/Madrid",
+            "Amsterdam": "Europe/Amsterdam",
+            "Stockholm": "Europe/Stockholm",
+            "Vienna": "Europe/Vienna",
+            "Zurich": "Europe/Zurich",
+            "Istanbul": "Europe/Istanbul",
+            "Cairo": "Africa/Cairo",
+            "Buenos Aires": "America/Argentina/Buenos_Aires",
+            "Mexico City": "America/Mexico_City",
+            "Lima": "America/Lima",
+            "Santiago": "America/Santiago",
+            "Bogota": "America/Bogota",
+            "Bangkok": "Asia/Bangkok",
+            "Seoul": "Asia/Seoul",
+            "Jakarta": "Asia/Jakarta",
+            "Kuala Lumpur": "Asia/Kuala_Lumpur",
+            "Auckland": "Pacific/Auckland",
+            "Wellington": "Pacific/Wellington",
+            "Honolulu": "Pacific/Honolulu",
+            "Anchorage": "America/Anchorage",
+            "Phoenix": "America/Phoenix",
+            "Denver": "America/Denver",
+            "Chicago": "America/Chicago",
+            "Miami": "America/Miami",
+            "Halifax": "America/Halifax",
+            "St. John's": "America/St_Johns",
+            "Reykjavik": "Atlantic/Reykjavik",
+            "Cape Town": "Africa/Cape_Town",
+            "Nairobi": "Africa/Nairobi",
+            "Lagos": "Africa/Lagos",
+            "Addis Ababa": "Africa/Addis_Ababa",
+            "Kinshasa": "Africa/Kinshasa",
+            "Algiers": "Africa/Algiers",
+            "Casablanca": "Africa/Casablanca",
+            "Tunis": "Africa/Tunis",
+            "Warsaw": "Europe/Warsaw", // Example additional cities
+            "Budapest": "Europe/Budapest",
+            "Prague": "Europe/Prague",
+            "Dublin": "Europe/Dublin",
+            "Helsinki": "Europe/Helsinki",
+            "Copenhagen": "Europe/Copenhagen",
+            "Oslo": "Europe/Oslo",
+            "Lisbon": "Europe/Lisbon",
+            "Athens": "Europe/Athens",
+            "Bucharest": "Europe/Bucharest",
+            "Sofia": "Europe/Sofia",
+            "Belgrade": "Europe/Belgrade",
+            "Zagreb": "Europe/Zagreb",
+            "Bratislava": "Europe/Bratislava",
+            "Vilnius": "Europe/Vilnius",
+            "Riga": "Europe/Riga",
+            "Tallinn": "Europe/Tallinn",
+            "Minsk": "Europe/Minsk",
+            "Kiev": "Europe/Kiev",
+            "Tbilisi": "Asia/Tbilisi",
+            "Yerevan": "Asia/Yerevan",
+            "Baku": "Asia/Baku",
+            "Astana": "Asia/Astana",
+            "Ulaanbaatar": "Asia/Ulaanbaatar",
+            "Islamabad": "Asia/Karachi", // Or appropriate timezone
+            "Dhaka": "Asia/Dhaka",
+            "Kathmandu": "Asia/Kathmandu",
+            "Colombo": "Asia/Colombo",
+            "Malé": "Indian/Maldives",
+            "Canberra": "Australia/Canberra",
+            "Perth": "Australia/Perth",
+            "Adelaide": "Australia/Adelaide",
+            "Brisbane": "Australia/Brisbane",
+            "Hobart": "Australia/Hobart",
+            "Wollongong": "Australia/Wollongong", // Example
+            "Christchurch": "Pacific/Auckland", // Same timezone as Auckland
+            "Suva": "Pacific/Fiji",
+            "Apia": "Pacific/Apia",
+            "Pago Pago": "Pacific/Pago_Pago",
+            "Nuku'alofa": "Pacific/Tongatapu",
+            "Port Moresby": "Pacific/Port_Moresby",
+            "Honiara": "Pacific/Guadalcanal",
+            "Noumea": "Pacific/Noumea",
+            "Papeete": "Pacific/Tahiti",
+            "Majuro": "Pacific/Majuro",
+            "Tarawa": "Pacific/Tarawa",
+            "Funafuti": "Pacific/Funafuti",
+            "Yaren": "Pacific/Nauru",
+            "Koror": "Pacific/Palau",
+            "Hagåtña": "Pacific/Guam",
+            "Saipan": "Pacific/Saipan",
+            "Chuuk": "Pacific/Chuuk",
+            "Pohnpei": "Pacific/Pohnpei",
+            "Kosrae": "Pacific/Kosrae",
+            "Port Vila": "Pacific/Efate",
+            "Lomé": "Africa/Lome",
+            "Accra": "Africa/Accra",
+            "Dakar": "Africa/Dakar",
+            "Banjul": "Africa/Banjul",
+            "Conakry": "Africa/Conakry",
+            "Freetown": "Africa/Freetown",
+            "Monrovia": "Africa/Monrovia",
+            "Abidjan": "Africa/Abidjan",
+            "Ouagadougou": "Africa/Ouagadougou",
+            "Niamey": "Africa/Niamey",
+            "Bamako": "Africa/Bamako",
+            "Praia": "Atlantic/Cape_Verde",
+            "São Tomé": "Africa/Sao_Tome",
+            "Luanda": "Africa/Luanda",
+            "Harare": "Africa/Harare",
+            "Lusaka": "Africa/Lusaka",
+            "Lilongwe": "Africa/Lilongwe",
+            "Maputo": "Africa/Maputo",
+            "Antananarivo": "Africa/Antananarivo",
+            "Victoria": "Indian/Mahe",
+            "Moroni": "Indian/Comoro",
+            "Port Louis": "Indian/Mauritius",
+            "Tórshavn": "Atlantic/Faroe",
+            "Nuuk": "America/Godthab",
+            "Thorshavn": "Atlantic/Faroe",
+            "Stanley": "Atlantic/Stanley",
+            "Hamilton": "Atlantic/Bermuda",
+            "Nassau": "America/Nassau",
+            "Havana": "America/Havana",
+            "Kingston": "America/Jamaica",
+            "Port-au-Prince": "America/Port-au-Prince",
+            "Santo Domingo": "America/Santo_Domingo",
+            "San Juan": "America/Puerto_Rico",
+            "Charlotte Amalie": "America/St_Thomas",
+            "The Valley": "America/Anguilla",
+            "Basseterre": "America/St_Kitts",
+            "Plymouth": "America/Montserrat",
+            "Philipsburg": "America/Lower_Princes",
+            "Road Town": "America/Virgin",
+            "Gustavia": "America/St_Barthelemy",
+            "Oranjestad": "America/Aruba",
+            "Willemstad": "America/Curacao",
+            "Kralendijk": "America/Kralendijk",
+            "Fort-de-France": "America/Martinique",
+            "Castries": "America/St_Lucia",
+            "Kingstown": "America/St_Vincent",
+            "Bridgetown": "America/Barbados",
+            "St. George's": "America/Grenada",
+            "Port of Spain": "America/Trinidad",
+            "Georgetown": "America/Guyana",
+            "Paramaribo": "America/Paramaribo",
+            "Cayenne": "America/Cayenne",
+            "Miquelon": "America/Miquelon",
+            "Buenos Aires": "America/Argentina/Buenos_Aires",
+            "Catamarca": "America/Argentina/Catamarca",
+            "Cordoba": "America/Argentina/Cordoba",
+            "Jujuy": "America/Argentina/Jujuy",
+            "La Rioja": "America/Argentina/La_Rioja",
+            "Mendoza": "America/Argentina/Mendoza",
+            "Rio Gallegos": "America/Argentina/Rio_Gallegos",
+            "Salta": "America/Argentina/Salta",
+            "Tucuman": "America/Argentina/Tucuman",
+            "Ushuaia": "America/Argentina/Ushuaia",
+            "Curitiba": "America/Sao_Paulo", // often same as Sao Paulo
+            "Manaus": "America/Manaus",
+            "Campo Grande": "America/Campo_Grande",
+            "Cuiaba": "America/Cuiaba",
+            "Porto Velho": "America/Porto_Velho",
+            "Boa Vista": "America/Boa_Vista",
+            "Rio Branco": "America/Rio_Branco",
+            "La Paz": "America/La_Paz",
+            "Cochabamba": "America/Cochabamba",
+            "Sucre": "America/Sucre",
+            "Santiago": "America/Santiago",
+            "Punta Arenas": "America/Punta_Arenas",
+            "Guayaquil": "America/Guayaquil",
+            "Quito": "America/Quito",
+            "Bogota": "America/Bogota",
+            "Medellin": "America/Bogota", // Often same as Bogota
+            "Cali": "America/Bogota", // Often same as Bogota
+            "Lima": "America/Lima",
+            "Cusco": "America/Lima", // Often same as Lima
+            "Arequipa": "America/Lima", // Often same as Lima
+            "Mexico City": "America/Mexico_City",
+            "Guadalajara": "America/Mexico_City", // Often same as Mexico City
+            "Monterrey": "America/Mexico_City", // Often same as Mexico City
+            "Tijuana": "America/Tijuana",
+            "Cancun": "America/Cancun",
+            "Panama City": "America/Panama",
+            "San Jose": "America/Costa_Rica",
+            "Managua": "America/Managua",
+            "Tegucigalpa": "America/Tegucigalpa",
+            "San Salvador": "America/El_Salvador",
+            "Guatemala City": "America/Guatemala",
+            "Belmopan": "America/Belize",
+            "Toronto": "America/Toronto",
+            "Montreal": "America/Montreal",
+            "Vancouver": "America/Vancouver",
+            "Calgary": "America/Edmonton", // Often same as Edmonton
+            "Ottawa": "America/Toronto", // Often same as Toronto
+            "Halifax": "America/Halifax",
+            "Winnipeg": "America/Winnipeg",
+            "Quebec City": "America/Montreal", // Often same as Montreal
+            "Edmonton": "America/Edmonton",
+            "St. John's": "America/St_Johns",
+            "Regina": "America/Regina",
+            "Saskatoon": "America/Saskatoon",
+            "Victoria": "America/Vancouver", // Often same as Vancouver
+
+
+            // ... (Add any other cities and timezones you want)
+        };
+
+
+        const citySelect = document.getElementById('city-select');
+        // Populate the select dropdown:
+        for (const city in timeZones) {
+            const option = document.createElement('option');
+            option.value = city;
+            option.text = city;
+            citySelect.appendChild(option);
+        }
+
+        // Event listener for city selection:
+        citySelect.addEventListener('change', function() {
+            const selectedCity = this.value;
+            if (selectedCity) {
+                // Clear existing clocks:
+                const clockContainers = document.querySelectorAll('.clock-container');
+                clockContainers.forEach(container => container.remove());
+
+                // Create and display the selected clock:
+                const timeZone = timeZones[selectedCity];
+                const container = document.createElement('div');
+                container.className = 'clock-container';
+                container.innerHTML = `<h2 class="clock-title">${selectedCity}</h2><div class="clock-time" id="${selectedCity.toLowerCase().replace(/ /g, '-').replace(/[^\w\s]/gi, '')}-time"></div>`;
+                document.body.appendChild(container);
+
+                updateClock(timeZone, `${selectedCity.toLowerCase().replace(/ /g, '-').replace(/[^\w\s]/gi, '')}-time`);
+                setInterval(() => updateClock(timeZone, `${selectedCity.toLowerCase().replace(/ /g, '-').replace(/[^\w\s]/gi, '')}-time`), 1000);
+            } else {
+                // Handle the case where no city is selected (e.g., clear clocks)
+                const clockContainers = document.querySelectorAll('.clock-container');
+                clockContainers.forEach(container => container.remove());
+            }
+        });
+
+
+
+        function updateClock(timeZone, elementId) {
+            const now = new Date();
+            const options = {
+                timeZone: timeZone,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            const timeString = now.toLocaleTimeString([], options);
+            document.getElementById(elementId).textContent = timeString;
+        }
+    </script>
+
+</body>
+</html>

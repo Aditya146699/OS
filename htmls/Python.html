@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Online Compiler</title>
+    <!-- Load Skulpt libraries first -->
+    <script src="https://skulpt.org/js/skulpt.min.js" type="text/javascript"></script>
+    <script src="https://skulpt.org/js/skulpt-stdlib.js" type="text/javascript"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0078d7;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        pre {
+            width: 100%;
+            height: 200px;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            overflow: auto;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+
+        #status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="code" placeholder="Write your Python code here...">print('Hello, World!')
+for i in range(5):
+    print(i)</textarea>
+        <div id="status"></div>
+        <button onclick="runCode()">Run</button>
+        <button onclick="downloadCode()">Download</button>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+         window.onresize = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        window.onload = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        // Output function to handle Python print statements
+        function outf(text) {
+            const output = document.getElementById("output");
+            output.textContent += text;
+        }
+
+        // Function to handle Python imports
+        function builtinRead(x) {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                throw "File not found: '" + x + "'";
+            }
+            return Sk.builtinFiles["files"][x];
+        }
+
+        // Function to show status messages
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            status.className = isError ? 'error' : 'success';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+
+        // Function to run Python code
+        function runCode() {
+            const output = document.getElementById("output");
+            const code = document.getElementById('code').value;
+            output.textContent = '';
+
+            // Configure Skulpt
+            Sk.configure({
+                output: outf,
+                read: builtinRead,
+                python3: true
+            });
+
+            // Run the code
+            Promise.resolve(Sk.misceval.asyncToPromise(function() {
+                return Sk.importMainWithBody("<stdin>", false, code, true);
+            }))
+            .then(function() {
+                showStatus('Code executed successfully!');
+            })
+            .catch(function(err) {
+                showStatus('Error: ' + err.toString(), true);
+                output.textContent += '\nError: ' + err.toString();
+            });
+        }
+
+        // Function to download the code as a file
+        function downloadCode() {
+            const code = document.getElementById('code').value;
+            const blob = new Blob([code], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'code.py';
+            link.click();
+        }
+
+        // Check if Skulpt is loaded properly
+        window.onload = function() {
+            if (typeof Sk !== 'undefined') {
+                showStatus('Python interpreter loaded successfully!');
+            } else {
+                showStatus('Error: Python interpreter not loaded properly. Please refresh the page.', true);
+            }
+        };
+    </script>
+</body>
+</html>

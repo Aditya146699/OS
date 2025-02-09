@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .toolbar {
+            margin-bottom: 10px;
+        }
+
+        button,
+        input[type="range"],
+        input[type="color"] {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #0078d7;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover,
+        input[type="range"]:hover,
+        input[type="color"]:hover {
+            background-color: #005bb5;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toolbar">
+        <button onclick="setColor('black')">Black</button>
+        <button onclick="setColor('red')">Red</button>
+        <button onclick="setColor('green')">Green</button>
+        <button onclick="setColor('blue')">Blue</button>
+        <input type="color" id="colorPicker" onchange="setColor(this.value)">
+        <button onclick="clearCanvas()">Clear</button>
+        <input type="range" id="brushSize" min="1" max="20" value="5" onchange="setBrushSize(this.value)">
+        <button onclick="undo()">Undo</button>
+        <button onclick="saveCanvas()">Save</button>
+    </div>
+    <canvas id="paintCanvas"></canvas>
+    <script>
+        let canvas = document.getElementById('paintCanvas');
+        let ctx = canvas.getContext('2d');
+        let painting = false;
+        let currentColor = 'black';
+        let undoStack = [];
+
+        canvas.width = window.innerWidth * 0.8;
+        canvas.height = window.innerHeight * 0.8;
+
+        function setColor(color) {
+            currentColor = color;
+        }
+
+        function setBrushSize(size) {
+            ctx.lineWidth = size;
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            undoStack = [];
+        }
+
+        function saveCanvas() {
+            let dataURL = canvas.toDataURL('image/png');
+            let link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'painting.png';
+            link.click();
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                let previousState = undoStack.pop();
+                let img = new Image();
+                img.src = previousState;
+                img.onload = function () {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                };
+            }
+        }
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+            saveState();
+        }
+
+        function saveState() {
+            undoStack.push(canvas.toDataURL());
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = currentColor;
+
+            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('resize', function () {
+            canvas.width = window.innerWidth * 0.8;
+            canvas.height = window.innerHeight * 0.8;
+        });
+    </script>
+</body>
+
+</html>

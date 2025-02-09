@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <!-- <style>
+               * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        .calculator {
+            background: rgb(0, 0, 0,0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 320px;
+        }
+
+        .display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+        }
+
+        .previous-operand {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            min-height: 24px;
+            margin-bottom: 5px;
+        }
+
+        .current-operand {
+            color: white;
+            font-size: 2rem;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .span-two {
+            grid-column: span 2;
+        }
+
+        .operator {
+            background: rgba(52, 152, 219, 0.8);
+        }
+
+        .equals {
+            background: rgba(46, 204, 113, 0.8);
+        }
+
+        .clear, .delete {
+            background: rgba(231, 76, 60, 0.8);
+        }
+
+        
+    </style> -->
+<style>
+       * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            background-color: #f0f0f0; /* Light background */
+        }
+
+        .calculator {
+            background: white; /* White background for calculator */
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); /* Lighter shadow */
+            width: 320px;
+        }
+
+        .display {
+            background: #e0e0e0; /* Light gray background for display */
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: right;
+            min-height: 80px;
+            color: #333; /* Dark text color for display */
+        }
+
+        .previous-operand {
+            color: #777; /* Slightly darker text */
+            font-size: 1.2rem;
+            min-height: 24px;
+            margin-bottom: 5px;
+        }
+
+        .current-operand {
+            color: #000; /* Black text */
+            font-size: 2rem;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            background: #f5f5f5; /* Light gray button background */
+            color: #333; /* Dark button text */
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #e0e0e0; /* Slightly darker on hover */
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .span-two {
+            grid-column: span 2;
+        }
+
+        .operator {
+            background: #3498db; /* Blue for operators */
+            color: white;
+        }
+
+        .equals {
+            background: #2ecc71; /* Green for equals */
+            color: white;
+        }
+
+        .clear, .delete {
+            background: #e74c3c; /* Red for clear/delete */
+            color: white;
+        }
+</style>
+</head>
+<body>
+    
+    <div class="calculator">
+        <div class="display">
+            <div class="previous-operand"></div>
+            <div class="current-operand">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear span-two">AC</button>
+            <button class="delete">DEL</button>
+            <button class="operator">÷</button>
+            <button>7</button>
+            <button>8</button>
+            <button>9</button>
+            <button class="operator">×</button>
+            <button>4</button>
+            <button>5</button>
+            <button>6</button>
+            <button class="operator">-</button>
+            <button>1</button>
+            <button>2</button>
+            <button>3</button>
+            <button class="operator">+</button>
+            <button class="span-two">0</button>
+            <button>.</button>
+            <button class="equals">=</button>
+        </div>
+    </div>
+
+    <script>
+        window.onresize = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        window.onload = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+                class Calculator {
+            constructor() {
+                this.previousOperand = '';
+                this.currentOperand = '0';
+                this.operation = undefined;
+            }
+
+            clear() {
+                this.previousOperand = '';
+                this.currentOperand = '0';
+                this.operation = undefined;
+            }
+
+            delete() {
+                if (this.currentOperand === '0') return;
+                if (this.currentOperand.length === 1) {
+                    this.currentOperand = '0';
+                } else {
+                    this.currentOperand = this.currentOperand.slice(0, -1);
+                }
+            }
+
+            appendNumber(number) {
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number;
+                    return;
+                }
+                if (number === '.' && this.currentOperand.includes('.')) return;
+                this.currentOperand = this.currentOperand + number;
+            }
+
+            chooseOperation(operation) {
+                if (this.currentOperand === '0') return;
+                if (this.previousOperand !== '') {
+                    this.compute();
+                }
+                this.operation = operation;
+                this.previousOperand = this.currentOperand;
+                this.currentOperand = '0';
+            }
+
+            compute() {
+                let computation;
+                const prev = parseFloat(this.previousOperand);
+                const current = parseFloat(this.currentOperand);
+                if (isNaN(prev) || isNaN(current)) return;
+
+                switch (this.operation) {
+                    case '+':
+                        computation = prev + current;
+                        break;
+                    case '-':
+                        computation = prev - current;
+                        break;
+                    case '×':
+                        computation = prev * current;
+                        break;
+                    case '÷':
+                        if (current === 0) {
+                            alert('Cannot divide by zero!');
+                            return;
+                        }
+                        computation = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+
+                this.currentOperand = computation.toString();
+                this.operation = undefined;
+                this.previousOperand = '';
+            }
+
+            updateDisplay() {
+                document.querySelector('.current-operand').textContent = this.currentOperand;
+                if (this.operation != null) {
+                    document.querySelector('.previous-operand').textContent = 
+                        `${this.previousOperand} ${this.operation}`;
+                } else {
+                    document.querySelector('.previous-operand').textContent = '';
+                }
+            }
+        }
+
+        const calculator = new Calculator();
+
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.classList.contains('clear')) {
+                    calculator.clear();
+                } else if (button.classList.contains('delete')) {
+                    calculator.delete();
+                } else if (button.classList.contains('equals')) {
+                    calculator.compute();
+                } else if (button.classList.contains('operator')) {
+                    calculator.chooseOperation(button.textContent);
+                } else {
+                    calculator.appendNumber(button.textContent);
+                }
+                calculator.updateDisplay();
+            });
+        });
+    </script>
+</body>
+</html>

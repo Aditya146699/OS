@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        #loading {
+            font-size: 16px;
+            color: #0078d7;
+        }
+
+        /* Progress Bar */
+        #progressContainer {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0;
+            background-color: #0078d7;
+            border-radius: 10px;
+        }
+
+        /* SVG Gauge */
+        #gaugeContainer {
+            margin: 20px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internet Speed Test</h1>
+
+        <div id="gaugeContainer" class="hidden">
+            <svg id="gauge" viewBox="0 0 100 50">
+                <path d="M10,40 Q50,0 90,40" fill="none" stroke="#ddd" stroke-width="10"/>
+                <path id="gaugeProgress" d="M10,40 Q50,0 90,40" fill="none" stroke="#0078d7" stroke-width="10" stroke-dasharray="0,100"/>
+                <text id="speedText" x="50" y="30" text-anchor="middle" font-size="10" fill="#333">0 Mbps</text>
+            </svg>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="metric">
+                <p>Latency</p>
+                <p id="ping">0 ms</p>
+            </div>
+            <div class="metric">
+                <p>Download</p>
+                <p id="downloadSpeed">0 Mbps</p>
+            </div>
+            <div class="metric">
+                <p>Upload</p>
+                <p id="uploadSpeed">0 Mbps</p>
+            </div>
+        </div>
+
+        <div id="loading" class="hidden">
+            <p>Testing... Please wait.</p>
+            <!-- Progress Bar -->
+            <div id="progressContainer">
+                <div id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            startSpeedTest();
+        }
+
+        function startSpeedTest() {
+            // Show the loading indicator
+            document.getElementById("loading").classList.remove("hidden");
+
+            let progress = 0; // Initial progress value
+            let downloadSpeed = 0;
+            let uploadSpeed = 0;
+            let ping = 0;
+            let maxDownload = Math.random() * 90 + 10;  // Maximum simulated download speed (10-100 Mbps)
+            let maxUpload = Math.random() * 50 + 5;    // Maximum simulated upload speed (5-55 Mbps)
+            let maxPing = Math.random() * 40 + 10;     // Maximum simulated ping (10-50 ms)
+
+            // Start the progress bar update interval
+            let progressInterval = setInterval(function() {
+                if (progress < 100) {
+                    progress += 10; // Increase progress by 10%
+                    document.getElementById("progressBar").style.width = progress + "%";
+
+                    // Simulate download speed, upload speed, and ping with gradual changes
+                    downloadSpeed = Math.min(maxDownload, downloadSpeed + Math.random() * 5); // Increase download speed
+                    uploadSpeed = Math.min(maxUpload, uploadSpeed + Math.random() * 3); // Increase upload speed
+                    ping = Math.max(10, Math.min(maxPing, ping + Math.random() * 2)); // Gradually increase ping
+
+                    // Update the metrics every second
+                    document.getElementById("downloadSpeed").innerText = downloadSpeed.toFixed(2) + " Mbps";
+                    document.getElementById("uploadSpeed").innerText = uploadSpeed.toFixed(2) + " Mbps";
+                    document.getElementById("ping").innerText = ping.toFixed(2) + " ms";
+
+                    // Update the gauge with the download speed
+                    let gaugeProgress = document.getElementById("gaugeProgress");
+                    let strokeDasharray = (downloadSpeed / maxDownload) * 100;
+                    gaugeProgress.setAttribute("stroke-dasharray", `${strokeDasharray},100`);
+
+                    let speedText = document.getElementById("speedText");
+                    speedText.innerText = `${downloadSpeed.toFixed(2)} Mbps`;
+
+                } else {
+                    clearInterval(progressInterval); // Stop the progress bar after reaching 100%
+                    setTimeout(function() {
+                        // Show the final results after the test is complete
+                        document.getElementById("loading").classList.add("hidden");
+                        document.getElementById("results").classList.remove("hidden");
+                        document.getElementById("gaugeContainer").classList.remove("hidden");
+                    }, 500); // Delay to show the results
+                }
+            }, 1000); // Update every 1 second (simulating an ongoing test)
+        }
+    </script>
+</body>
+</html>

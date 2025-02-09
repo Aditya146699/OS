@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .browser {
+            width: 99.50%;
+            height: 99.50%;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .address-bar {
+            display: flex;
+            padding: 10px;
+            background-color: #0078d7;
+        }
+
+        .address-bar input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+            font-size: 16px;
+        }
+
+        .address-bar button {
+            padding: 10px;
+            border: none;
+            background-color: #005bb5;
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+
+        .address-bar button:hover {
+            background-color: #004090;
+        }
+
+        iframe {
+            flex: 1;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="browser">
+        <div class="address-bar">
+            <input type="text" id="url" placeholder="Enter URL here...">
+            <button onclick="navigate()">Go</button>
+        </div>
+        <iframe id="browser-frame"></iframe>
+    </div>
+    <script>
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+
+        function navigate() {
+            const urlInput = document.getElementById('url').value;
+            const iframe = document.getElementById('browser-frame');
+
+            // Ensure the URL starts with "http://" or "https://"
+            let url = urlInput;
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'http://' + url;
+            }
+
+            iframe.src = url;
+        }
+
+    </script>
+</body>
+
+</html>

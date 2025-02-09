@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        .notepad-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            text-align: center;
+        }
+
+        textarea {
+            width: 98%;
+            height: 200px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 10px;
+            resize: none;
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            margin: 5px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        select {
+            padding: 8px;
+            font-size: 14px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .word-count {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="notepad-container">
+        <textarea id="notepad" placeholder="Start typing..."></textarea>
+
+        <!-- Text transformation options -->
+        <div class="buttons">
+            <select id="textFilter" onchange="applyTextFilter()">
+                <option value="">Select Text Filter</option>
+                <option value="uppercase">Uppercase</option>
+                <option value="lowercase">Lowercase</option>
+                <option value="capitalize">Capitalize Each Word</option>
+                <option value="reverse">Reverse Text</option>
+                <option value="removeSpaces">Remove Extra Spaces</option>
+                <option value="sentenceCase">Sentence Case</option>
+                <option value="trimSpaces">Trim Leading/Trailing Spaces</option>
+                <option value="removePunctuation">Remove Punctuation</option>
+                <option value="toggleCase">Toggle Case</option>
+                <option value="replaceText">Replace Text</option>
+            </select>
+            <button onclick="clearNote()">Clear</button>
+            <button onclick="downloadNote()">Download as TXT</button>
+            <button onclick="saveAsNote()">Save As</button>
+        </div>
+
+        <!-- Word Count Display -->
+        <div class="word-count" id="wordCount">Word Count: 0</div>
+    </div>
+
+    <script>
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        // Function to clear the note in the text area
+        function clearNote() {
+            document.getElementById('notepad').value = '';
+            updateWordCount();
+        }
+
+        // Function to download the note as a .txt file
+        function downloadNote() {
+            const noteContent = document.getElementById('notepad').value;
+            if (noteContent.trim() === '') {
+                alert('Cannot download an empty note!');
+                return;
+            }
+
+            // Create a Blob with the note content
+            const blob = new Blob([noteContent], { type: 'text/plain' });
+
+            // Create an anchor element to simulate a download link
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'note.txt';  // Default filename for download
+
+            // Trigger the download by simulating a click
+            link.click();
+        }
+
+        // Function to save the note with a custom filename
+        function saveAsNote() {
+            const noteContent = document.getElementById('notepad').value;
+            const fileName = prompt('Enter the filename:', 'note.txt');
+
+            if (fileName && noteContent.trim() !== '') {
+                const blob = new Blob([noteContent], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                link.click();
+            } else {
+                alert('Please enter a valid filename and ensure the note is not empty.');
+            }
+        }
+
+        // Function to apply text filters (uppercase/lowercase, etc.)
+        function applyTextFilter() {
+            const textArea = document.getElementById('notepad');
+            const selectedFilter = document.getElementById('textFilter').value;
+
+            switch (selectedFilter) {
+                case 'uppercase':
+                    textArea.value = textArea.value.toUpperCase();
+                    break;
+                case 'lowercase':
+                    textArea.value = textArea.value.toLowerCase();
+                    break;
+                case 'capitalize':
+                    textArea.value = textArea.value.replace(/\b\w/g, function (char) {
+                        return char.toUpperCase();
+                    });
+                    break;
+                case 'reverse':
+                    textArea.value = textArea.value.split('').reverse().join('');
+                    break;
+                case 'removeSpaces':
+                    textArea.value = textArea.value.replace(/\s+/g, ' ').trim();
+                    break;
+                case 'sentenceCase':
+                    textArea.value = textArea.value.toLowerCase().replace(/(?:^|\s)\S/g, function (match) {
+                        return match.toUpperCase();
+                    });
+                    break;
+                case 'trimSpaces':
+                    textArea.value = textArea.value.trim();
+                    break;
+                case 'removePunctuation':
+                    textArea.value = textArea.value.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+                    break;
+                case 'toggleCase':
+                    textArea.value = textArea.value.split('').map(function (char) {
+                        return char === char.toUpperCase() ? char.toLowerCase() : char.toUpperCase();
+                    }).join('');
+                    break;
+                case 'replaceText':
+                    const searchText = prompt('Enter the text to find:');
+                    const replaceText = prompt('Enter the text to replace it with:');
+                    textArea.value = textArea.value.split(searchText).join(replaceText);
+                    break;
+                default:
+                    break;
+            }
+
+            updateWordCount();
+        }
+
+        // Function to update word count
+        function updateWordCount() {
+            const textArea = document.getElementById('notepad');
+            const wordCount = textArea.value.trim().split(/\s+/).length;
+            document.getElementById('wordCount').innerText = `Word Count: ${wordCount}`;
+        }
+
+        // Update word count when typing
+        document.getElementById('notepad').addEventListener('input', updateWordCount);
+    </script>
+</body>
+
+</html>

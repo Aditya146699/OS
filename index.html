@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows OS-like UI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 50px;
+            background-color: rgb(51, 51, 51, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .start-button {
+            background: none;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .start-button img {
+            width: 35px;
+        }
+
+        .start-button:hover {
+            background-color: rgb(255, 255, 255, 0.2);
+        }
+
+        .clock_date {
+            height: 100%;
+            justify-content: space-evenly;
+            color: white;
+            font-size: 13px;
+            padding: 0px 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .clock_date:hover {
+            background-color: rgb(255, 255, 255, 0.2);
+
+        }
+
+        .desktop {
+            width: 100vw;
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1503264116251-35a269479413') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .window {
+            display: flex;
+            flex-direction: column;
+            min-width: 450px;
+            min-height: 500px;
+            background-color: white;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            resize: both;
+            overflow: hidden;
+            border-radius: 10px;
+
+        }
+
+        .window-header {
+            background-color: rgb(51, 51, 51, 0.8);
+            color: white;
+            padding: 10px;
+            cursor: move;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-content {
+
+            height: calc(100% - 40px);
+        }
+
+        .iframe-content {
+            display: flex;
+            min-height: 480px;
+            min-width: 450px;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-button,
+        .fullscreen-button,
+        .more-button {
+            border-radius: 50%;
+            color: none;
+            border: none;
+            padding: 9px;
+            cursor: pointer;
+        }
+
+        .close-button {
+            position: absolute;
+            background-color: red;
+            right: 10px;
+        }
+
+        .fullscreen-button {
+            background-color: rgb(26, 212, 26);
+            position: absolute;
+            right: 35px;
+        }
+
+        .close-button:hover {
+            opacity: 65%;
+        }
+
+        .fullscreen-button:hover {
+            opacity: 65%;
+        }
+
+        .more-button:hover {
+            opacity: 65%;
+        }
+
+        .more-button {
+            background-color: yellow;
+            position: absolute;
+            right: 60px;
+        }
+
+        .start-menu {
+            position: fixed;
+            bottom: 70px;
+            left: 10px;
+            width: 60%;
+            max-width: 800px;
+            max-height: 600px;
+            background-color: rgb(51, 51, 51, 0.6);
+            color: white;
+            display: none;
+            justify-content: center;
+            border-radius: 20px;
+            flex-wrap: wrap;
+            overflow: auto;
+            padding: 10px;
+        }
+
+        .start-menu a {
+            padding: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .start-menu a div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .start-menu a div:hover {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .start-menu a img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+
+        .start-menu a span {
+            font-size: 12px;
+        }
+
+        .context-menu {
+            position: absolute;
+            background-color: rgb(51, 51, 51, 0.6);
+            color: white;
+            display: none;
+            z-index: 1000;
+            flex-direction: column;
+            border: 1px solid #555;
+        }
+
+        .context-menu a {
+            padding: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .context-menu a:hover {
+            background-color: #555;
+        }
+
+        @media (max-width:800px) {
+            .start-menu {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="desktop" id="desktop" oncontextmenu="openContextMenu(event)"
+        onclick="document.getElementById('startMenu').style.display = 'none';">
+    </div>
+    <div class="taskbar">
+        <button class="start-button" onclick="toggleStartMenu()">
+            <img src="icons/Menu.png" alt="">
+        </button>
+        <div class="clock_date">
+            <span id="clock">00:00:00 pm</span>
+            <span id="date">00/00/0000</span>
+        </div>
+    </div>
+    <div class="start-menu" id="startMenu">
+
+        <a href="#" onclick="createWindow('Alarm', 'htmls/Alarm.html', 'icons/Alarm.png')">
+            <div>
+                <span><img src="icons/Alarm.png" alt=""></span>
+                <span>Alarm</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Audio Player', 'htmls/Audio_Player.html', 'icons/Audio_Player.png')">
+            <div>
+                <span><img src="icons/Audio_Player.png" alt=""></span>
+                <span>A Player</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('BMI Calculator', 'htmls/BMI_Calculator.html', 'icons/BMI_Calculator.png')">
+            <div>
+                <span><img src="icons/BMI_Calculator.png" alt=""></span>
+                <span>BMI Calo</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Browser', 'htmls/Browser.html', 'icons/Browser.png')">
+            <div>
+                <span><img src="icons/Browser.png" alt=""></span>
+                <span>Browser</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Calculator', 'htmls/Calculator.html', 'icons/Calculator.png')">
+            <div>
+                <span><img src="icons/Calculator.png" alt=""></span>
+                <span>Calculator</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Calendar', 'htmls/Calendar.html', 'icons/Calendar.png')">
+            <div>
+                <span><img src="icons/Calendar.png" alt=""></span>
+                <span>Calendar</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Codepen', 'htmls/Codepen.html', 'icons/Codepen.png')">
+            <div>
+                <span><img src="icons/Codepen.png" alt=""></span>
+                <span>Codepen</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Clock', 'htmls/Clock.html', 'icons/Clock.png')">
+            <div>
+                <span><img src="icons/Clock.png" alt=""></span>
+                <span>Clock</span>
+            </div>
+        </a>
+        <a href="#" onclick="createWindow('Codepen', 'htmls/Currency_C.html', 'icons/Currency_C.png')">
+            <div>
+                <span><img src="icons/Currency_C.png" alt=""></span>
+                <span>Currency C</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Flashcards', 'htmls/Flashcards.html', 'icons/Flashcards.png')">
+            <div>
+                <span><img src="icons/Flashcards.png" alt=""></span>
+                <span>Flashcards</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Joke', 'htmls/Joke.html', 'icons/Joke.png')">
+            <div>
+                <span><img src="icons/Joke.png" alt=""></span>
+                <span>Joke</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Math Quiz', 'htmls/Math_Quiz.html', 'icons/Math_Quiz.png')">
+            <div>
+                <span><img src="icons/Math_Quiz.png" alt=""></span>
+                <span>M Quiz</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Notepad', 'htmls/Notepad.html', 'icons/Notepad.png')">
+            <div>
+                <span><img src="icons/Notepad.png" alt=""></span>
+                <span>Notepad</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Notes', 'htmls/Notes.html', 'icons/Notes.png')">
+            <div>
+                <span><img src="icons/Notes.png" alt=""></span>
+                <span>Notes</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Paint', 'htmls/Paint.html', 'icons/Paint.png')">
+            <div>
+                <span><img src="icons/Paint.png" alt=""></span>
+                <span>Paint</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Photos', 'htmls/Photos.html', 'icons/Photos.png')">
+            <div>
+                <span><img src="icons/Photos.png" alt=""></span>
+                <span>Photos</span>
+            </div>
+        </a>
+
+        <a href="#"
+            onclick="createWindow('Password Generator', 'htmls/Password_Generator.html', 'icons/Password_Generator.png')">
+            <div>
+                <span><img src="icons/Password_Generator.png" alt=""></span>
+                <span>P Gener</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Python', 'htmls/Python.html', 'icons/Python.png')">
+            <div>
+                <span><img src="icons/Python.png" alt=""></span>
+                <span>Python</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('QR Code', 'htmls/QR_Code.html', 'icons/QR_Code.png')">
+            <div>
+                <span><img src="icons/QR_Code.png" alt=""></span>
+                <span>QR Code</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('S Test', 'htmls/S_test.html', 'icons/S_test.png')">
+            <div>
+                <span><img src="icons/S_test.png" alt=""></span>
+                <span>S Test</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Stopwatch', 'htmls/Stopwatch.html', 'icons/Stopwatch.png')">
+            <div>
+                <span><img src="icons/Stopwatch.png" alt=""></span>
+                <span>Stopwatch</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Textzo', 'htmls/Textzo.html', 'icons/Textzo.png')">
+            <div>
+                <span><img src="icons/Textzo.png" alt=""></span>
+                <span>Textzo</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Timer', 'htmls/Timer.html', 'icons/Timer.png')">
+            <div>
+                <span><img src="icons/Timer.png" alt=""></span>
+                <span>Timer</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('To Dos', 'htmls/To_dos.html', 'icons/To_dos.png')">
+            <div>
+                <span><img src="icons/To_dos.png" alt=""></span>
+                <span>To Dos</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Unit Converter', 'htmls/Unit_Converter.html', 'icons/Unit_Converter.png')">
+            <div>
+                <span><img src="icons/Unit_Converter.png" alt=""></span>
+                <span>Unit Con</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('URL Store', 'htmls/URL_Store.html', 'icons/URL_Store.png')">
+            <div>
+                <span><img src="icons/URL_Store.png" alt=""></span>
+                <span>URL Store</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('Video Player', 'htmls/Video_Player.html', 'icons/Video_Player.png')">
+            <div>
+                <span><img src="icons/Video_Player.png" alt=""></span>
+                <span>Video</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('V_Coll', 'htmls/V_Coll.html', 'icons/V_Coll.png')">
+            <div>
+                <span><img src="icons/V_Coll.png" alt=""></span>
+                <span>V Coll</span>
+            </div>
+        </a>
+
+        <a href="#" onclick="createWindow('World Clock', 'htmls/world_clock.html', 'icons/world_clock.png')">
+            <div>
+                <span><img src="icons/world_clock.png" alt=""></span>
+                <span>World Clock</span>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <a href="#"
+            onclick="changeBackground('https://images.unsplash.com/photo-1503264116251-35a269479413')">Background 1</a>
+        <a href="#"
+            onclick="changeBackground('https://images.unsplash.com/photo-1519681393784-d120267933ba')">Background 2</a>
+        <a href="#"
+            onclick="changeBackground('https://images.unsplash.com/photo-1521747116042-5a810fda9664')">Background 3</a>
+    </div>
+
+    <script>
+        document.getElementById('startMenu').style.display = 'none';
+        function toggleStartMenu() {
+            const startMenu = document.getElementById('startMenu');
+            startMenu.style.display = startMenu.style.display == 'none' ? 'flex' : 'none';
+        }
+
+        function createWindow(title, url, icons) {
+            const desktop = document.getElementById('desktop');
+            const windowDiv = document.createElement('div');
+            windowDiv.className = 'window';
+            windowDiv.innerHTML = `
+                <div class="window-header" style="padding-left: 43px;">
+                    ${title}
+                    <img src="${icons}" alt="" style="position: absolute;width: 24px;height: 24px;left: 10px;">
+                    <button class="fullscreen-button" onclick="toggleFullscreen(this.parentElement.parentElement)"></button>
+                    <button class="close-button" onclick="this.parentElement.parentElement.remove()"> </button>
+                    <button class="more-button"></button>
+                    </div>
+                <div class="window-content">
+                    <iframe class="iframe-content" src="${url}"></iframe>
+                </div>
+            `;
+            desktop.appendChild(windowDiv);
+            makeDraggable(windowDiv.querySelector('.window-header'), windowDiv);
+            toggleStartMenu()
+        }
+
+        function makeDraggable(header, element) {
+            header.onmousedown = function (event) {
+                let shiftX = event.clientX - element.getBoundingClientRect().left;
+                let shiftY = event.clientY - element.getBoundingClientRect().top;
+
+                function moveAt(pageX, pageY) {
+                    element.style.left = pageX - shiftX + 'px';
+                    element.style.top = pageY - shiftY + 'px';
+                }
+
+                function onMouseMove(event) {
+                    moveAt(event.pageX, event.pageY);
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                header.onmouseup = function () {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    header.onmouseup = null;
+                };
+            };
+
+            header.ondragstart = function () {
+                return false;
+            };
+        }
+
+        function toggleFullscreen(element) {
+            if (!document.fullscreenElement) {
+                element.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const day = now.getDate().toString().padStart(2, '0');
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const year = now.getFullYear();
+
+            const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
+            const dateString = `${day}/${month}/${year}`;
+            document.getElementById('clock').textContent = `${timeString}`;
+            document.getElementById('date').textContent = `${dateString}`;
+
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function openContextMenu(event) {
+            event.preventDefault();
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.display = 'flex';
+            contextMenu.style.left = `${event.pageX}px`;
+            contextMenu.style.top = `${event.pageY}px`;
+        }
+
+        window.addEventListener('click', () => {
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.display = 'none';
+        });
+
+        function changeBackground(url) {
+            const desktop = document.getElementById('desktop');
+            desktop.style.backgroundImage = `url(${url})`;
+        }
+    </script>
+</body>
+
+</html>

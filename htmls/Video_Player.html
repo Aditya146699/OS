@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Custom Video Player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .video-player {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 96%;
+            max-width: 800px;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 2%;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            transition: opacity 0.3s;
+            flex-wrap: wrap;
+        }
+
+        .controls.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .controls>* {
+            margin: 5px;
+        }
+
+        button,
+        select,
+        input[type="range"] {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+        }
+
+        input[type="range"] {
+            width: 100px;
+            accent-color: #f00;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            margin: 0 10px;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: #444;
+            border-radius: 2px;
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .progress {
+            height: 100%;
+            background: #f00;
+            border-radius: 2px;
+        }
+
+        .time-display {
+            color: white;
+            font-size: 0.8em;
+            margin: 0 10px;
+        }
+
+        .settings-dropdown {
+            position: relative;
+        }
+
+        .settings-menu {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 5px;
+            padding: 10px;
+            min-width: 150px;
+        }
+
+        .settings-menu.show {
+            display: block;
+        }
+
+        .settings-menu label {
+            color: white;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #file-input {
+            display: none;
+            /* Hide default file input */
+        }
+
+        #drop-zone {
+            border: 2px dashed #444;
+            background-color: #444;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            margin: 20px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            color: white;
+            font-size: 60px;
+        }
+
+        @media (max-width: 800px) {
+            input[type="range"] {
+                width: 0px;
+                visibility: hidden;
+            }
+
+            .progress-container {
+                min-width: 50px;
+            }
+
+            #stop {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="video-player">
+        <video id="video" src="MaryZeroTwoClothing - [1920 × 1080 - 24 FPS].mp4" preload="metadata"></video>
+
+        <div class="controls" id="controls">
+            <button id="playPause" title="Play/Pause (Space)"><i class="fas fa-play"></i></button>
+            <button id="stop" title="Stop"><i class="fas fa-stop"></i></button>
+            <button id="mute" title="Mute (M)"><i class="fas fa-volume-up"></i></button>
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="1" title="Volume">
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+
+            <span class="time-display" id="current-time">0:00</span>
+            <span class="time-display" id="duration">0:00</span>
+
+            <div class="settings-dropdown">
+                <button id="settings" title="Settings"><i class="fas fa-cog"></i></button>
+                <div class="settings-menu" id="settings-menu">
+                    <label>Filter:
+                        <select id="filter" style="background-color: #000;">
+                            <option value="none">No Filter</option>
+                            <option value="grayscale(100%)">Grayscale</option>
+                            <option value="sepia(100%)">Sepia</option>
+                            <option value="invert(100%)">Invert</option>
+                            <option value="blur(10px)">Blur</option>
+                            <option value="blur(5px) contrast(80%) brightness(120%) saturate(150%)">My filer</option>
+
+                        </select>
+                    </label>
+                    <label>Speed:
+                        <select id="playbackRate" style="background-color: #000;">
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <button id="picture-in-picture" title="Picture-in-Picture"><i class="fas fa-clone"></i></button>
+            <button id="fullscreen" title="Fullscreen (F)" style="margin-right: 20px;"><i
+                    class="fas fa-expand"></i></button>
+        </div>
+
+        <div class="loading" id="loading"><i class="fa-duotone fa-solid fa-spinner"></i> </div>
+    </div>
+
+    <div id="drop-zone">Drag and drop a video file here or
+        <span style="border-bottom:1px solid #f00;" onclick="vidlink()">link</span> or
+        <label for="file-input" style="color: aqua;"><i class="fa-duotone fa-solid fa-file"></i></label>
+        <input type="file" id="file-input" accept="video/*">
+
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const playPauseButton = document.getElementById('playPause');
+        const stopButton = document.getElementById('stop');
+        const muteButton = document.getElementById('mute');
+        const fullscreenButton = document.getElementById('fullscreen');
+        const volumeSlider = document.getElementById('volume');
+        const filterSelect = document.getElementById('filter');
+        const playbackRateSelect = document.getElementById('playbackRate');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const controls = document.getElementById('controls');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const durationDisplay = document.getElementById('duration');
+        const settingsButton = document.getElementById('settings');
+        const settingsMenu = document.getElementById('settings-menu');
+        const pictureInPictureButton = document.getElementById('picture-in-picture');
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const loadingIndicator = document.getElementById('loading');
+
+        let controlsTimeout;
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+
+        // Format time in MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function vidlink() {
+            let Lvid = prompt('Enter video url = ')
+            video.src = Lvid;
+            video.play();
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+
+        }
+        // Function to show controls
+        const showControls = () => {
+            controls.classList.remove('hidden');
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                controls.classList.add('hidden');
+            }, 3000);
+        };
+
+        // Play/Pause function
+        playPauseButton.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                video.pause();
+                playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            }
+            showControls();
+        });
+
+        // Stop function
+        stopButton.addEventListener('click', () => {
+            video.pause();
+            video.currentTime = 0;
+            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+            showControls();
+        });
+
+        // Mute/Unmute function
+        muteButton.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteButton.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+            showControls();
+        });
+
+        // Fullscreen function with exit capability
+        fullscreenButton.addEventListener('click', () => {
+            const videoPlayer = document.querySelector('.video-player');
+            if (!document.fullscreenElement) {
+                if (videoPlayer.requestFullscreen) {
+                    videoPlayer.requestFullscreen();
+                } else if (videoPlayer.mozRequestFullScreen) {
+                    videoPlayer.mozRequestFullScreen();
+                } else if (videoPlayer.webkitRequestFullscreen) {
+                    videoPlayer.webkitRequestFullscreen();
+                } else if (videoPlayer.msRequestFullscreen) {
+                    videoPlayer.msRequestFullscreen();
+                }
+                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    videoPlayer.webkitExitFullscreen();
+                } else if (videoPlayer.msExitFullscreen) {
+                    videoPlayer.msExitFullscreen();
+                }
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+            showControls();
+        });
+
+        // Volume control
+        volumeSlider.addEventListener('input', (event) => {
+            video.volume = event.target.value;
+            muteButton.innerHTML = video.volume === 0 ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+            showControls();
+        });
+
+        // Filter function
+        filterSelect.addEventListener('change', (event) => {
+            video.style.filter = event.target.value;
+            showControls();
+        });
+
+        // Playback rate control
+        playbackRateSelect.addEventListener('change', (event) => {
+            video.playbackRate = parseFloat(event.target.value);
+            showControls();
+        });
+
+        // Update progress bar and time displays
+        video.addEventListener('timeupdate', () => {
+            const percentage = (video.currentTime / video.duration) * 100;
+            progress.style.width = percentage + '%';
+            currentTimeDisplay.textContent = formatTime(video.currentTime);
+        });
+
+        // Set duration when metadata is loaded
+        video.addEventListener('loadedmetadata', () => {
+            durationDisplay.textContent = formatTime(video.duration);
+        });
+
+        // Seek video on progress bar click
+        progressBar.addEventListener('click', (event) => {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            video.currentTime = percentage * video.duration;
+            showControls();
+        });
+
+        // Show loading icon while buffering
+        video.addEventListener('waiting', () => {
+            loadingIndicator.style.display = 'block';
+        });
+
+        video.addEventListener('playing', () => {
+            loadingIndicator.style.display = 'none';
+        });
+
+        // Mouse move event to show controls
+        video.addEventListener('mousemove', showControls);
+
+        // Settings dropdown toggle
+        settingsButton.addEventListener('click', () => {
+            settingsMenu.classList.toggle('show');
+            showControls();
+        });
+
+        // Close settings menu when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!settingsButton.contains(event.target) && !settingsMenu.contains(event.target)) {
+                settingsMenu.classList.remove('show');
+            }
+        });
+
+        // Picture-in-Picture functionality
+        pictureInPictureButton.addEventListener('click', async () => {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else if (document.pictureInPictureEnabled) {
+                await video.requestPictureInPicture();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') return;
+
+            switch (event.key) {
+                case ' ':
+                    playPauseButton.click();
+                    event.preventDefault();
+                    break;
+                case 'm':
+                    muteButton.click();
+                    break;
+                case 'f':
+                    fullscreenButton.click();
+                    break;
+                case 'ArrowRight':
+                    video.currentTime += 5;
+                    break;
+                case 'ArrowLeft':
+                    video.currentTime -= 5;
+                    break;
+            }
+            showControls();
+        });
+
+        // Reset play button when video ends
+        video.addEventListener('ended', () => {
+            playPauseButton.innerHTML = '<i class="fas fa-play"></i>';
+        });
+
+        // Handle fullscreen change to show/hide controls
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                controls.classList.remove('hidden');
+                fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+            } else {
+                showControls();
+                fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+            }
+        });
+
+        // Handle file selection
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                video.src = fileURL;
+                video.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                showControls();
+            }
+        });
+
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '#333';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = '#444';
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '#444';
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const fileURL = URL.createObjectURL(file);
+                video.src = fileURL;
+                video.play();
+                playPauseButton.innerHTML = '<i class="fas fa-pause"></i>';
+                showControls();
+            }
+        });
+    </script>
+</body>
+
+</html>

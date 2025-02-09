@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Clock</title>
+    <style>
+        body {
+            width: 100%;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .alarm-clock {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #time {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .set-alarm {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .set-alarm label {
+            margin-bottom: 5px;
+        }
+
+        .set-alarm input[type="time"] {
+            padding: 5px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #alarmSound {
+            display: none;
+        }
+
+        #alarmMessage {
+            font-size: 1em;
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="alarm-clock">
+        <div id="time"></div>
+
+        <div class="set-alarm">
+            <label for="alarmTime">Set Alarm:</label>
+            <input type="time" id="alarmTime">
+        </div>
+
+        <button id="setAlarmBtn">Set Alarm</button>
+        <div id="alarmMessage"></div>
+
+        <audio id="alarmSound">
+            <source src="thailand-eas-alarm-2006-266492.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script>
+        const timeDisplay = document.getElementById('time');
+        const alarmTimeInput = document.getElementById('alarmTime');
+        const setAlarmBtn = document.getElementById('setAlarmBtn');
+        const alarmMessage = document.getElementById('alarmMessage');
+        const alarmSound = document.getElementById('alarmSound');
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+
+        let alarmTimeout;
+
+        function updateTime() {
+            const now = new Date();
+            const currentTime = now.toLocaleTimeString();
+            timeDisplay.textContent = currentTime;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        setAlarmBtn.addEventListener('click', () => {
+            const alarmTimeString = alarmTimeInput.value;
+            if (!alarmTimeString) {
+                alarmMessage.textContent = "Please set an alarm time.";
+                alarmMessage.style.color = "red";
+                return;
+            }
+
+            const alarmTime = new Date();
+            const [hours, minutes] = alarmTimeString.split(':');
+            alarmTime.setHours(hours);
+            alarmTime.setMinutes(minutes);
+            alarmTime.setSeconds(0);
+
+            const now = new Date();
+            let timeUntilAlarm = alarmTime.getTime() - now.getTime();
+
+            if (timeUntilAlarm < 0) {
+                timeUntilAlarm = 24 * 60 * 60 * 1000 + timeUntilAlarm;
+            }
+
+            alarmTimeout = setTimeout(() => {
+                alarmSound.play();
+
+                if (Notification.permission === "granted") {
+                    new Notification("Alarm Ringing!", {
+                        body: "Time's up!",
+                        icon: "alarm_icon.png" // Optional icon
+                    });
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            new Notification("Alarm Ringing!", {
+                                body: "Time's up!",
+                                icon: "alarm_icon.png" // Optional icon
+                            });
+                        }
+                    });
+                }
+
+                const stopAlarm = () => {
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0;
+                    window.removeEventListener('click', stopAlarm);
+                    clearTimeout(alarmTimeout);
+                };
+
+                window.addEventListener('click', stopAlarm);
+            }, timeUntilAlarm);
+
+            alarmMessage.textContent = `Alarm is set`;
+            alarmMessage.style.color = "green";
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .url-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        #urlInput {
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            width: 94%;
+        }
+
+        button {
+            padding: 12px 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            word-wrap: break-word;
+        }
+
+        li a {
+            text-decoration: none;
+            color: #007bff;
+            flex: 1;
+            overflow: hidden;
+            word-wrap: normal;
+        }
+
+        /* Button styles for actions */
+        button.edit {
+            background-color: #ffc107;
+        }
+
+        button.delete {
+            background-color: #dc3545;
+        }
+
+        button.copy {
+            background-color: #007bff;
+        }
+
+        button.copy:hover {
+            background-color: #0056b3;
+        }
+
+        button.edit:hover {
+            background-color: #e0a800;
+        }
+
+        button.delete:hover {
+            background-color: #c82333;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Feedback for copied button */
+        button.copy.copied {
+            background-color: #28a745;
+        }
+
+        button.copy.copied:hover {
+            background-color: #218838;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                max-width: 90%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .url-form {
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+            }
+
+            ul {
+                padding: 0 10px;
+            }
+
+            button.edit,
+            button.delete,
+            button.copy {
+                margin-left: 5px;
+                width: 3%;
+            }
+        }
+
+        /* Tablet View (600px - 1024px) */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .container {
+                max-width: 80%;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.7rem;
+            }
+
+            .url-form {
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            li {
+                flex-direction: row;
+            }
+
+            button.edit,
+            button.delete,
+            button.copy {
+                width: auto;
+                margin-left: 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- <h1>URL Store</h1> -->
+
+        <div class="url-form">
+            <input type="url" id="urlInput" placeholder="Enter URL" required>
+            <button onclick="addUrl()"><i class="fas fa-plus"></i> Add URL</button>
+            <div id="errorMessage" class="error-message"></div> <!-- Error message placeholder -->
+        </div>
+
+
+        <ul id="urlList">
+            <!-- URLs will appear here -->
+        </ul>
+    </div>
+
+    <!-- Edit URL Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Edit URL</h2>
+            <input type="url" id="editInput" placeholder="Enter new URL" required>
+            <button onclick="saveEditedUrl()"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+
+    <script>
+        let editUrlItem = null; // To store the URL item being edited
+
+        // Check if URLs exist in localStorage and load them
+        window.onload = function () {
+            loadUrls();
+        };
+
+        // Function to add a URL
+        function addUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const urlList = document.getElementById('urlList');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const url = urlInput.value.trim();
+
+            if (!url || !isValidUrl(url)) {
+                errorMessage.textContent = "Please enter a valid URL.";
+                return;
+            }
+
+            // Clear previous error messages
+            errorMessage.textContent = "";
+
+            // Create URL item element
+            const urlItem = document.createElement('li');
+
+            // Add URL text with a link
+            const urlText = document.createElement('a');
+            urlText.href = url;
+            urlText.target = "_blank";
+            urlText.textContent = url;
+
+            // Add Edit, Delete, and Copy buttons with icons
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editBtn.classList.add('edit');
+            editBtn.onclick = function () {
+                editUrl(urlItem, url);
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+            deleteBtn.classList.add('delete');
+            deleteBtn.onclick = function () {
+                deleteUrl(urlItem);
+            };
+
+            const copyBtn = document.createElement('button');
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+            copyBtn.classList.add('copy');
+            copyBtn.onclick = function () {
+                copyUrlToClipboard(url, copyBtn);
+            };
+
+            // Append elements to the list item
+            urlItem.appendChild(urlText);
+            urlItem.appendChild(editBtn);
+            urlItem.appendChild(deleteBtn);
+            urlItem.appendChild(copyBtn);
+
+            // Append the new item to the list
+            urlList.appendChild(urlItem);
+
+            // Save the updated URLs to localStorage
+            saveUrls();
+
+            // Clear the input field
+            urlInput.value = '';
+        }
+
+        // Function to edit a URL (open modal)
+        function editUrl(urlItem, oldUrl) {
+            editUrlItem = urlItem; // Store the URL item being edited
+            document.getElementById('editInput').value = oldUrl;
+            document.getElementById('editModal').style.display = "block";
+        }
+
+        // Function to save the edited URL
+        function saveEditedUrl() {
+            const newUrl = document.getElementById('editInput').value.trim();
+
+            if (!newUrl || !isValidUrl(newUrl)) {
+                alert("Please enter a valid URL.");
+                return;
+            }
+
+            const urlText = editUrlItem.querySelector('a');
+            urlText.href = newUrl;
+            urlText.textContent = newUrl;
+
+            // Save updated URLs to localStorage
+            saveUrls();
+
+            closeModal();
+        }
+
+        // Function to delete a URL
+        function deleteUrl(urlItem) {
+            urlItem.remove();
+            saveUrls();
+        }
+
+        // Function to load URLs from localStorage
+        function loadUrls() {
+            const urlList = document.getElementById('urlList');
+            const storedUrls = JSON.parse(localStorage.getItem('urls')) || [];
+
+            storedUrls.forEach(url => {
+                const urlItem = document.createElement('li');
+
+                const urlText = document.createElement('a');
+                urlText.href = url;
+                urlText.target = "_blank";
+                urlText.textContent = url;
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+                editBtn.classList.add('edit');
+                editBtn.onclick = function () {
+                    editUrl(urlItem, url);
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteBtn.classList.add('delete');
+                deleteBtn.onclick = function () {
+                    deleteUrl(urlItem);
+                };
+
+                const copyBtn = document.createElement('button');
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                copyBtn.classList.add('copy');
+                copyBtn.onclick = function () {
+                    copyUrlToClipboard(url, copyBtn);
+                };
+
+                urlItem.appendChild(urlText);
+                urlItem.appendChild(editBtn);
+                urlItem.appendChild(deleteBtn);
+                urlItem.appendChild(copyBtn);
+
+                urlList.appendChild(urlItem);
+            });
+        }
+
+        // Function to save URLs to localStorage
+        function saveUrls() {
+            const urlListItems = document.querySelectorAll('#urlList li');
+            const urls = [];
+
+            urlListItems.forEach(item => {
+                const url = item.querySelector('a').textContent;
+                urls.push(url);
+            });
+
+            localStorage.setItem('urls', JSON.stringify(urls));
+        }
+
+        // Function to validate URL format
+        function isValidUrl(url) {
+            const pattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+            return pattern.test(url);
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('editModal').style.display = "none";
+        }
+
+        // Function to copy the URL to clipboard
+        function copyUrlToClipboard(url, button) {
+            navigator.clipboard.writeText(url).then(() => {
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.classList.add('copied');
+
+                // Reset the button text after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert("Failed to copy URL: " + err);
+            });
+        }
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+    </script>
+</body>
+
+</html>

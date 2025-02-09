@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #feedback {
+            font-size: 18px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        #timer {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #d9534f;
+        }
+
+        #scoreboard {
+            margin-top: 20px;
+        }
+
+        #score {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <!-- <h1>Random Math Quiz App</h1> -->
+        <div id="quiz">
+            <p id="question" style="margin-bottom: 12px;"></p>
+            <input type="number" id="answer" placeholder="Enter your answer" />
+            <button onclick="checkAnswer()">Submit Answer</button>
+        </div>
+        <div id="feedback"></div>
+        <div id="timer">Time: <span id="time">10</span> seconds</div>
+        <div id="scoreboard">
+            <p>Score: <span id="score">0</span></p>
+            <button onclick="nextQuestion()">Next Question</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentQuestion = 0;
+        let timerValue = 10;
+        let questionTimer;
+        const operators = ['+', '-', '*', '/', '^', '%', '√', 'square', 'cube'];
+
+        function generateRandomQuestion() {
+            const difficulty = Math.floor(currentQuestion / 3) + 1; // Increase difficulty after every 3 questions
+            const num1 = Math.floor(Math.random() * (20 * difficulty)) + 1;
+            const num2 = Math.floor(Math.random() * (20 * difficulty)) + 1;
+            const operator = operators[Math.floor(Math.random() * operators.length)];
+
+            let question = '';
+            let correctAnswer = 0;
+
+            switch (operator) {
+                case '+':
+                    question = `${num1} + ${num2}`;
+                    correctAnswer = num1 + num2;
+                    break;
+                case '-':
+                    question = `${num1} - ${num2}`;
+                    correctAnswer = num1 - num2;
+                    break;
+                case '*':
+                    question = `${num1} * ${num2}`;
+                    correctAnswer = num1 * num2;
+                    break;
+                case '/':
+                    question = `${num1 * num2} / ${num2}`; // To avoid decimal answers
+                    correctAnswer = num1;
+                    break;
+                case '^':
+                    question = `${num1} ^ ${num2}`;
+                    correctAnswer = Math.pow(num1, num2);
+                    break;
+                case '%':
+                    question = `${num1} % ${num2}`;
+                    correctAnswer = num1 % num2;
+                    break;
+                case '√':
+                    const squareNum = Math.floor(Math.random() * 20) + 1;  // Random number between 1 and 5
+                    question = `√${squareNum * squareNum}`;
+                    correctAnswer = squareNum;
+                    break;
+                case 'square':
+                    const square = Math.floor(Math.random() * 20) + 1;  // Random number between 1 and 5
+                    question = `Square of ${square}`;
+                    correctAnswer = square * square;
+                    break;
+                case 'cube':
+                    const cube = Math.floor(Math.random() * 20) + 1;  // Random number between 1 and 5
+                    question = `Cube of ${cube}`;
+                    correctAnswer = cube * cube * cube;
+                    break;
+            }
+
+            return { question, correctAnswer };
+        }
+
+        function loadQuestion() {
+            if (currentQuestion < 10) {  // 10 questions
+                const { question, correctAnswer } = generateRandomQuestion();
+
+                document.getElementById('question').textContent = `Question: ${question}`;
+                document.getElementById('feedback').textContent = '';
+                document.getElementById('answer').value = '';
+
+                startTimer();
+                window.currentAnswer = correctAnswer;
+            } else {
+                document.getElementById('quiz').style.display = 'none';
+                document.getElementById('scoreboard').style.display = 'none';
+                document.getElementById('feedback').textContent = `Quiz Over! Final Score: ${score}`;
+                alert(`Quiz Over! Your final score is: ${score}`);
+            }
+        }
+
+        function startTimer() {
+            timerValue = 15;
+            document.getElementById('time').textContent = timerValue;
+
+            questionTimer = setInterval(function () {
+                if (timerValue > 0) {
+                    timerValue--;
+                    document.getElementById('time').textContent = timerValue;
+                } else {
+                    clearInterval(questionTimer);
+                    checkAnswer();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+
+            if (userAnswer === window.currentAnswer) {
+                score++;
+                document.getElementById('feedback').textContent = 'Correct! Well done!';
+            } else {
+                document.getElementById('feedback').textContent = `Incorrect! The correct answer was ${window.currentAnswer}.`;
+            }
+
+            document.getElementById('score').textContent = score;
+            clearInterval(questionTimer);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        loadQuestion();
+        window.onload = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        };
+
+        window.onresize = function () {
+            document.querySelector('body').style.height = `${window.innerHeight}px`;
+        }
+    </script>
+</body>
+
+</html>

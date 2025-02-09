@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin: 0;        
+            background-color: #f0f0f0;
+        }
+
+        .timer {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #display {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        #startBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #pauseBtn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #resetBtn {
+            background-color: #008CBA;
+            color: white;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 60px;
+            margin-right: 5px;
+        }
+
+        label {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body onclick=" document.querySelector('audio').pause();">
+
+    <div class="timer">
+        <div>
+            <label for="hours">Hours:</label>
+            <input type="number" id="hours" value="0" min="0">
+            <label for="minutes">Minutes:</label>
+            <input type="number" id="minutes" value="0" min="0">
+            <label for="seconds">Seconds:</label>
+            <input type="number" id="seconds" value="0" min="0" max="59">
+        </div>
+        <div id="display">00:00:00</div>
+        <div class="controls">
+            <button id="startBtn">Start</button>
+            <button id="pauseBtn" disabled>Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <audio src="thailand-eas-alarm-2006-266492.mp3" style="display: none;" loop></audio>
+    <script>
+             window.onresize = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        window.onload = function(){
+            document.querySelector('body').style.height= `${window.innerHeight}px` ;
+        }
+        let startTime = 0;
+        let totalSeconds = 0;
+        let running = false;
+        let timerInterval;
+
+        const display = document.getElementById('display');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+
+        function updateDisplay() {
+            const remainingSeconds = totalSeconds - Math.floor((Date.now() - startTime) / 1000);
+
+            if (remainingSeconds < 0) {
+                clearInterval(timerInterval);
+                running = false;
+                display.textContent = "00:00:00";
+                startBtn.textContent = "Start"; // Reset button text
+                pauseBtn.disabled = true; // Disable pause button
+                document.querySelector('audio').play();
+                
+                return;
+            }
+
+            const hours = Math.floor(remainingSeconds / 3600);
+            const minutes = Math.floor((remainingSeconds % 3600) / 60);
+            const seconds = remainingSeconds % 60;
+            const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            display.textContent = formattedTime;
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!running) {
+                totalSeconds = parseInt(hoursInput.value) * 3600 + parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
+
+                if (isNaN(totalSeconds) || totalSeconds <= 0) {
+                    alert("Please enter a valid time.");
+                    return;
+                }
+
+                startTime = Date.now();
+                timerInterval = setInterval(updateDisplay, 1000);
+                running = true;
+                startBtn.textContent = "Pause";
+                pauseBtn.disabled = false;
+            } else if (startBtn.textContent === "Pause") {
+                clearInterval(timerInterval);
+                running = false;
+                startBtn.textContent = "Resume";
+                pauseBtn.disabled = true;
+            } else if (startBtn.textContent === "Resume") {
+                startTime = Date.now() - (totalSeconds * 1000 - (Date.now() - startTime)); // Correct resume calculation
+                timerInterval = setInterval(updateDisplay, 1000);
+                running = true;
+                startBtn.textContent = "Pause";
+                pauseBtn.disabled = false;
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            if (running) {
+                clearInterval(timerInterval);
+                running = false;
+                startBtn.textContent = "Start";
+                pauseBtn.disabled = true;
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            running = false;
+            startTime = 0;
+            display.textContent = "00:00:00";
+            startBtn.textContent = "Start";
+            pauseBtn.disabled = true;
+            hoursInput.value = 0;
+            minutesInput.value = 0;
+            secondsInput.value = 0;
+
+        });
+    </script>
+
+</body>
+</html>
